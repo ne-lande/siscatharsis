@@ -1,0 +1,10 @@
+version: "3.8"
+services:
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      args:
+        JAR: "siscatharsis-0.0.1.jar"
+    ports:
+      - "12321:12321"
