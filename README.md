@@ -11,6 +11,7 @@ mvn package
 ## 2run
 1) build
 2) replace target file name in docker-compose.yml
-3) ```bash
+3)
+```bash
 docker compose up --build
 ```
