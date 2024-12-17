@@ -8,9 +8,17 @@ nix-shell shell.nix --run <shell>
 ```bash
 mvn package
 ```
+
 ## 2run
 1) build
 2) replace target file name in docker-compose.yml
-3) ```bash
+3)
+```bash
+docker compose up --build
+```
+
+## fun (prefired way)
+
+```bash
 docker compose up --build
 ```

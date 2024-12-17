@@ -1,0 +1,41 @@
+package ru.mtuci.siscatharsis.services;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import ru.mtuci.siscatharsis.dto.internal.LicenseTypeRequest;
+import ru.mtuci.siscatharsis.model.LicenseType;
+import ru.mtuci.siscatharsis.repositories.LicenseTypeRepository;
+import ru.mtuci.siscatharsis.base.AbstractCRUDService;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class LicenseTypeService extends AbstractCRUDService<LicenseType, LicenseTypeRequest, LicenseTypeRepository>{
+
+    @Autowired
+    public LicenseTypeService(LicenseTypeRepository repository) {
+        super(repository, LicenseType.class);
+    }
+
+    @Override
+    public LicenseType create(LicenseTypeRequest licenseTypeRequest) {
+        return repository.save(
+            new LicenseType(
+                licenseTypeRequest.getName(),
+                licenseTypeRequest.getDefaultDuration(),
+                licenseTypeRequest.getDescription()
+            )
+        );
+    }
+
+    @Override
+    public LicenseType update(Long id, LicenseTypeRequest licenseTypeRequest) {
+        LicenseType licenseType = this.findById(id);
+
+        licenseType.setName(licenseTypeRequest.getName());
+        licenseType.setDefaultDuration(licenseTypeRequest.getDefaultDuration());
+        licenseType.setDescription(licenseTypeRequest.getDescription());
+        return repository.save(licenseType);
+    }
+}

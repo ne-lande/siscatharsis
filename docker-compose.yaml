@@ -8,3 +8,31 @@ services:
         JAR: "siscatharsis-0.0.1.jar"
     ports:
       - "12321:12321"
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    depends_on:
+      database:
+        restart: true
+        condition: service_healthy
+
+
+  database:
+    image: postgres:14-alpine
+    restart: unless-stopped
+    volumes:
+      - db-data:/var/lib/postgresql/data:rw
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+volumes:
+  db-data:
