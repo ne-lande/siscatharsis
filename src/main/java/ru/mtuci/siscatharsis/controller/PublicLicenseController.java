@@ -1,6 +1,7 @@
 package ru.mtuci.siscatharsis.controller;
 
 import jakarta.validation.Valid;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -13,8 +14,6 @@ import ru.mtuci.siscatharsis.services.*;
 import ru.mtuci.siscatharsis.utils.ApiMessage;
 import ru.mtuci.siscatharsis.utils.LicenseException;
 
-import java.util.Objects;
-
 @RestController
 @RequestMapping("/license")
 public class PublicLicenseController {
@@ -24,39 +23,62 @@ public class PublicLicenseController {
     private final LicenseService licenseService;
 
     @Autowired
-    public PublicLicenseController(UserService userService, DeviceService deviceService, LicenseService licenseService) {
+    public PublicLicenseController(
+        UserService userService,
+        DeviceService deviceService,
+        LicenseService licenseService
+    ) {
         this.userService = userService;
         this.deviceService = deviceService;
         this.licenseService = licenseService;
     }
 
     @PostMapping("/info")
-    public ResponseEntity<?> getLicenseInfo(@Valid @RequestBody LicenseInfoRequest licenseInfoRequest) throws LicenseException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public ResponseEntity<?> getLicenseInfo(
+        @Valid @RequestBody LicenseInfoRequest licenseInfoRequest
+    ) throws LicenseException {
+        Authentication authentication = SecurityContextHolder.getContext()
+            .getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).body("Validation error: User is not authenticated");
+            return ResponseEntity.status(401).body("User is not authenticated");
         }
 
         User user = userService.findByLogin(authentication.getName());
-        Device device = deviceService.findByMacAddressAndUser(licenseInfoRequest.getMacAddress(), user);
-        License activeLicense = licenseService.getActiveLicenseForDevice(device, user, licenseInfoRequest.getLicenseCode());
-        LicenseResponse ticket = licenseService.generateTicket(activeLicense, device);
+        Device device = deviceService.findByMacAddressAndUser(
+            licenseInfoRequest.getMacAddress(),
+            user
+        );
+        License activeLicense = licenseService.getActiveLicenseForDevice(
+            device,
+            user,
+            licenseInfoRequest.getLicenseCode()
+        );
+        LicenseResponse ticket = licenseService.generateLicenseResponse(
+            activeLicense,
+            device
+        );
 
         return ApiMessage.Success(ticket);
     }
 
     @PostMapping("/activate")
-    public ResponseEntity<?> activateLicense(@Valid @RequestBody LicenseActivationRequest licenseActivationRequest) throws LicenseException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public ResponseEntity<?> activateLicense(
+        @Valid @RequestBody LicenseActivationRequest licenseActivationRequest
+    ) throws LicenseException {
+        Authentication authentication = SecurityContextHolder.getContext()
+            .getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
-            return ApiMessage.BadRequest("Validation error: User is not authenticated");
+            return ApiMessage.BadRequest("User is not authenticated");
         }
 
         User user = userService.findByLogin(authentication.getName());
         LicenseResponse ticket = licenseService.activateLicense(
             licenseActivationRequest.getActivationCode(),
-            deviceService.registerOrUpdateDevice(licenseActivationRequest, user),
+            deviceService.registerOrUpdateDevice(
+                licenseActivationRequest,
+                user
+            ),
             user.getLogin()
         );
 
@@ -64,8 +86,14 @@ public class PublicLicenseController {
     }
 
     @PostMapping("/update")
-    public ResponseEntity<?> updateLicense(@Valid @RequestBody LicenseUpdateRequest licenseUpdateRequest) throws LicenseException {
-        LicenseResponse ticket = licenseService.updateExistentLicense(licenseUpdateRequest.getLicenseCode(), licenseUpdateRequest.getLogin(), licenseUpdateRequest.getMacAddress());
+    public ResponseEntity<?> updateLicense(
+        @Valid @RequestBody LicenseUpdateRequest licenseUpdateRequest
+    ) throws LicenseException {
+        LicenseResponse ticket = licenseService.updateExistentLicense(
+            licenseUpdateRequest.getLicenseCode(),
+            licenseUpdateRequest.getLogin(),
+            licenseUpdateRequest.getMacAddress()
+        );
 
         return ApiMessage.Success(ticket);
     }

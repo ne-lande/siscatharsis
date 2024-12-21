@@ -1,12 +1,17 @@
 package ru.mtuci.siscatharsis.base;
 
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.data.jpa.repository.JpaRepository;
 import ru.mtuci.siscatharsis.utils.ApiMessage;
-import java.util.List;
 
-public abstract class AbstractCRUDController<Model, DTO, Repository extends JpaRepository<Model, Long>, Service extends AbstractCRUDService<Model, DTO, Repository>> {
+public abstract class AbstractCRUDController<
+    Model,
+    DTO,
+    Repository extends JpaRepository<Model, Long>,
+    Service extends AbstractCRUDService<Model, DTO, Repository>
+> {
 
     protected final Service service;
 
@@ -54,8 +59,11 @@ public abstract class AbstractCRUDController<Model, DTO, Repository extends JpaR
         return ApiMessage.Success(entity);
     }
 
-    @PutMapping("/update{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody DTO requestDTO) {
+    @PutMapping("/update/{id}")
+    public ResponseEntity<?> update(
+        @PathVariable Long id,
+        @RequestBody DTO requestDTO
+    ) {
         Model updatedEntity = updateEntity(id, requestDTO);
         if (updatedEntity == null) {
             return ApiMessage.BadRequest("Entity not found");
