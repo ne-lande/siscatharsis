@@ -19,10 +19,6 @@ import java.util.List;
 import java.util.Base64;
 import java.util.Date;
 
-//TODO: 1. Добавить ЭЦП к тикету на основе полей ✅
-//TODO: 2. Пересмотреть логику validateActivation ✅ && updateLicense ✅
-//TODO: 3.  validateActivation проверять дату первой активации по другому, чтобы работало на неск. ус-в
-
 @Service
 public class LicenseService extends AbstractCRUDService<License, LicenseRequest, LicenseRepository> {
 

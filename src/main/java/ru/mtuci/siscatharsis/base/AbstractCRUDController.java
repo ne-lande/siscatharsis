@@ -34,12 +34,18 @@ public abstract class AbstractCRUDController<Model, DTO, Repository extends JpaR
         service.deleteById(id);
     }
 
-    @GetMapping("/all")
+    @PostMapping("/create")
+    public ResponseEntity<?> create(@RequestBody DTO requestDTO) {
+        Model createdEntity = createEntity(requestDTO);
+        return ApiMessage.Success(createdEntity);
+    }
+
+    @GetMapping("/get/all")
     public ResponseEntity<?> getAll() {
         return ApiMessage.Success(getAllEntities());
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/get/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
         Model entity = getEntityById(id);
         if (entity == null) {
@@ -48,13 +54,7 @@ public abstract class AbstractCRUDController<Model, DTO, Repository extends JpaR
         return ApiMessage.Success(entity);
     }
 
-    @PostMapping("/")
-    public ResponseEntity<?> create(@RequestBody DTO requestDTO) {
-        Model createdEntity = createEntity(requestDTO);
-        return ApiMessage.Success(createdEntity);
-    }
-
-    @PatchMapping("/{id}")
+    @PutMapping("/update{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody DTO requestDTO) {
         Model updatedEntity = updateEntity(id, requestDTO);
         if (updatedEntity == null) {
@@ -63,7 +63,7 @@ public abstract class AbstractCRUDController<Model, DTO, Repository extends JpaR
         return ApiMessage.Success(updatedEntity);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         deleteEntity(id);
         return ApiMessage.Success("Deleted successfully");

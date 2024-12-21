@@ -31,64 +31,42 @@ public class PublicLicenseController {
     }
 
     @PostMapping("/info")
-    public ResponseEntity<?> getLicenseInfo(@Valid @RequestBody LicenseInfoRequest licenseInfoRequest) {
+    public ResponseEntity<?> getLicenseInfo(@Valid @RequestBody LicenseInfoRequest licenseInfoRequest) throws LicenseException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body("Validation error: User is not authenticated");
         }
 
-        try {
-            User user = userService.findByLogin(authentication.getName());
-            Device device = deviceService.findByMacAddressAndUser(licenseInfoRequest.getMacAddress(), user);
-            License activeLicense = licenseService.getActiveLicenseForDevice(device, user, licenseInfoRequest.getLicenseCode());
-            LicenseResponse ticket = licenseService.generateTicket(activeLicense, device);
+        User user = userService.findByLogin(authentication.getName());
+        Device device = deviceService.findByMacAddressAndUser(licenseInfoRequest.getMacAddress(), user);
+        License activeLicense = licenseService.getActiveLicenseForDevice(device, user, licenseInfoRequest.getLicenseCode());
+        LicenseResponse ticket = licenseService.generateTicket(activeLicense, device);
 
-            return ApiMessage.Success(ticket);
-        } catch (IllegalArgumentException e) {
-            return ApiMessage.ServerError(e.toString());
-        } catch (Exception e) {
-            return ApiMessage.ServerError(e.toString());
-        }
+        return ApiMessage.Success(ticket);
     }
 
     @PostMapping("/activate")
-    public ResponseEntity<?> activateLicense(@Valid @RequestBody LicenseActivationRequest licenseActivationRequest) {
+    public ResponseEntity<?> activateLicense(@Valid @RequestBody LicenseActivationRequest licenseActivationRequest) throws LicenseException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             return ApiMessage.BadRequest("Validation error: User is not authenticated");
         }
 
-        try {
-            User user = userService.findByLogin(authentication.getName());
-            LicenseResponse ticket = licenseService.activateLicense(
-                licenseActivationRequest.getActivationCode(),
-                deviceService.registerOrUpdateDevice(licenseActivationRequest, user),
-                user.getLogin()
-            );
+        User user = userService.findByLogin(authentication.getName());
+        LicenseResponse ticket = licenseService.activateLicense(
+            licenseActivationRequest.getActivationCode(),
+            deviceService.registerOrUpdateDevice(licenseActivationRequest, user),
+            user.getLogin()
+        );
 
-            return ApiMessage.Success(ticket);
-        } catch (LicenseException e) {
-            return ApiMessage.BadRequest(e.toString());
-        } catch (IllegalArgumentException e) {
-            return ApiMessage.ServerError(e.toString());
-        } catch (Exception e) {
-            return ApiMessage.ServerError(e.toString());
-        }
+        return ApiMessage.Success(ticket);
     }
 
     @PostMapping("/update")
-    public ResponseEntity<?> updateLicense(@Valid @RequestBody LicenseUpdateRequest licenseUpdateRequest) {
-        try {
-            LicenseResponse ticket = licenseService.updateExistentLicense(licenseUpdateRequest.getLicenseCode(), licenseUpdateRequest.getLogin(), licenseUpdateRequest.getMacAddress());
+    public ResponseEntity<?> updateLicense(@Valid @RequestBody LicenseUpdateRequest licenseUpdateRequest) throws LicenseException {
+        LicenseResponse ticket = licenseService.updateExistentLicense(licenseUpdateRequest.getLicenseCode(), licenseUpdateRequest.getLogin(), licenseUpdateRequest.getMacAddress());
 
-            return ApiMessage.Success(ticket);
-        } catch (LicenseException e) {
-            return ApiMessage.BadRequest(e.toString());
-        } catch (IllegalArgumentException e) {
-            return ApiMessage.ServerError(e.toString());
-        } catch (Exception e) {
-            return ApiMessage.ServerError(e.toString());
-        }
+        return ApiMessage.Success(ticket);
     }
 }

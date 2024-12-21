@@ -46,10 +46,6 @@ public class UserController extends AbstractCRUDController<User, UserRequest, Us
     protected User updateEntity(Long id, UserRequest userRequest) {
         User user = service.findById(id);
 
-        if (user == null) {
-            return null;
-        }
-
         if (service.findByLogin(userRequest.getLogin()) != null) {
             throw new IllegalArgumentException("Login already assigned");
         }
