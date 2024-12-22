@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+//TODO: 1. Как временное решение пойдёт, но лучше тогда использовать систему миграции и скрипт, который не попадёт в гитхаб
+
 @Component
 public class InitalizeAdmin implements CommandLineRunner {
 

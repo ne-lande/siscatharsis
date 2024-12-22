@@ -15,6 +15,8 @@ import ru.mtuci.siscatharsis.base.AbstractCRUDController;
 import java.util.List;
 import java.util.Objects;
 
+//TODO: 1. Пересмотреть права доступа для простого пользователя во всех контроллерах
+
 @RestController
 @RequestMapping("/admin/device")
 @PreAuthorize("hasRole('ROLE_ADMIN')")
