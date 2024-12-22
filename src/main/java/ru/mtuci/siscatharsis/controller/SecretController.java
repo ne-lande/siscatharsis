@@ -7,6 +7,8 @@ import org.springframework.http.ResponseEntity;
 
 import ru.mtuci.siscatharsis.utils.ApiMessage;
 
+//TODO: 1. Лучше воспользоваться Spring Boot Actuator
+
 @RestController
 public class SecretController {
 

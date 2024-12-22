@@ -1,7 +1,9 @@
 package ru.mtuci.siscatharsis.controller;
 
 import jakarta.validation.Valid;
+
 import java.util.Objects;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -14,6 +16,8 @@ import ru.mtuci.siscatharsis.services.*;
 import ru.mtuci.siscatharsis.utils.ApiMessage;
 import ru.mtuci.siscatharsis.utils.LicenseException;
 
+//TODO: 1. Кажется, что есть лишние проверки аутентификации
+
 @RestController
 @RequestMapping("/license")
 public class PublicLicenseController {
@@ -24,9 +28,9 @@ public class PublicLicenseController {
 
     @Autowired
     public PublicLicenseController(
-        UserService userService,
-        DeviceService deviceService,
-        LicenseService licenseService
+            UserService userService,
+            DeviceService deviceService,
+            LicenseService licenseService
     ) {
         this.userService = userService;
         this.deviceService = deviceService;
@@ -35,10 +39,10 @@ public class PublicLicenseController {
 
     @PostMapping("/info")
     public ResponseEntity<?> getLicenseInfo(
-        @Valid @RequestBody LicenseInfoRequest licenseInfoRequest
+            @Valid @RequestBody LicenseInfoRequest licenseInfoRequest
     ) throws LicenseException {
         Authentication authentication = SecurityContextHolder.getContext()
-            .getAuthentication();
+                .getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).body("User is not authenticated");
@@ -46,17 +50,17 @@ public class PublicLicenseController {
 
         User user = userService.findByLogin(authentication.getName());
         Device device = deviceService.findByMacAddressAndUser(
-            licenseInfoRequest.getMacAddress(),
-            user
+                licenseInfoRequest.getMacAddress(),
+                user
         );
         License activeLicense = licenseService.getActiveLicenseForDevice(
-            device,
-            user,
-            licenseInfoRequest.getLicenseCode()
+                device,
+                user,
+                licenseInfoRequest.getLicenseCode()
         );
         LicenseResponse ticket = licenseService.generateLicenseResponse(
-            activeLicense,
-            device
+                activeLicense,
+                device
         );
 
         return ApiMessage.Success(ticket);
@@ -64,22 +68,22 @@ public class PublicLicenseController {
 
     @PostMapping("/activate")
     public ResponseEntity<?> activateLicense(
-        @Valid @RequestBody LicenseActivationRequest licenseActivationRequest
+            @Valid @RequestBody LicenseActivationRequest licenseActivationRequest
     ) throws LicenseException {
         Authentication authentication = SecurityContextHolder.getContext()
-            .getAuthentication();
+                .getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             return ApiMessage.BadRequest("User is not authenticated");
         }
 
         User user = userService.findByLogin(authentication.getName());
         LicenseResponse ticket = licenseService.activateLicense(
-            licenseActivationRequest.getActivationCode(),
-            deviceService.registerOrUpdateDevice(
-                licenseActivationRequest,
-                user
-            ),
-            user.getLogin()
+                licenseActivationRequest.getActivationCode(),
+                deviceService.registerOrUpdateDevice(
+                        licenseActivationRequest,
+                        user
+                ),
+                user.getLogin()
         );
 
         return ApiMessage.Success(ticket);
@@ -87,12 +91,12 @@ public class PublicLicenseController {
 
     @PostMapping("/update")
     public ResponseEntity<?> updateLicense(
-        @Valid @RequestBody LicenseUpdateRequest licenseUpdateRequest
+            @Valid @RequestBody LicenseUpdateRequest licenseUpdateRequest
     ) throws LicenseException {
         LicenseResponse ticket = licenseService.updateExistentLicense(
-            licenseUpdateRequest.getLicenseCode(),
-            licenseUpdateRequest.getLogin(),
-            licenseUpdateRequest.getMacAddress()
+                licenseUpdateRequest.getLicenseCode(),
+                licenseUpdateRequest.getLogin(),
+                licenseUpdateRequest.getMacAddress()
         );
 
         return ApiMessage.Success(ticket);

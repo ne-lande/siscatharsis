@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,9 +20,19 @@ import ru.mtuci.siscatharsis.services.*;
 import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 import ru.mtuci.siscatharsis.utils.LicenseException;
 
+//TODO: 1. Нужен рефакторинг. Много неиспользуемых переменных
+//TODO: 2. getActiveLicenseForDevice - судя по содержанию, лицензия достаётся не для конкретного устройства. Либо переименовать, либо изменить сам метод
+//TODO: 3. generateLicenseResponse - получается, что лицензия в тикете всегда разблокирована
+//TODO: 4. generateLicenseCode - подпись должна быть не просто хэшем. Нужно генерировать открытый ключ, чтобы клиент мог её проверить
+//TODO: 5. activateLicense - пересмотреть проверку. Пользователь должен иметь возможность повторно активировать лицензию на другом устройстве
+//TODO: 6. Дублируется код в create и update
+//TODO: 7. create - license.setDuration(licenseRequest.getDuration()); Лучше сделать в LicenceType свойство - defaultDuration и его использовать
+//TODO: 8. create - license.setProduct(product); Присутствует дважды
+//TODO: 9. update - если меняются свойства существующей лицензии, то не нужно менять код активации и владельца
+
 @Service
 public class LicenseService
-    extends AbstractCRUDService<License, LicenseRequest, LicenseRepository> {
+        extends AbstractCRUDService<License, LicenseRequest, LicenseRepository> {
 
     private final ProductService productService;
     private final UserService userService;
@@ -33,14 +44,14 @@ public class LicenseService
 
     @Autowired
     public LicenseService(
-        LicenseRepository repository,
-        ProductService productService,
-        UserService userService,
-        LicenseTypeService licenseTypeService,
-        LicenseHistoryService licenseHistoryService,
-        DeviceLicenseService deviceLicenseService,
-        DeviceService deviceService,
-        PasswordEncoder passwordEncoder
+            LicenseRepository repository,
+            ProductService productService,
+            UserService userService,
+            LicenseTypeService licenseTypeService,
+            LicenseHistoryService licenseHistoryService,
+            DeviceLicenseService deviceLicenseService,
+            DeviceService deviceService,
+            PasswordEncoder passwordEncoder
     ) {
         super(repository, License.class);
         this.productService = productService;
@@ -54,14 +65,14 @@ public class LicenseService
 
     @Override
     public License create(
-        LicenseRequest licenseRequest
-    ) /*throws IllegalArgumentException*/{
+            LicenseRequest licenseRequest
+    ) /*throws IllegalArgumentException*/ {
         Product product = productService.findById(
-            licenseRequest.getProductId()
+                licenseRequest.getProductId()
         );
         User user = userService.findById(licenseRequest.getUserId());
         LicenseType licenseType = licenseTypeService.findById(
-            licenseRequest.getTypeId()
+                licenseRequest.getTypeId()
         );
 
         String code = generateLicenseCode(licenseRequest);
@@ -83,13 +94,13 @@ public class LicenseService
         repository.save(license);
 
         licenseHistoryService.save(
-            new LicenseHistory(
-                license,
-                user,
-                "CREATED",
-                new Date(),
-                "License created"
-            )
+                new LicenseHistory(
+                        license,
+                        user,
+                        "CREATED",
+                        new Date(),
+                        "License created"
+                )
         );
 
         return license;
@@ -100,10 +111,10 @@ public class LicenseService
         License license = this.findById(id);
         User user = userService.findById(licenseRequest.getUserId());
         Product product = productService.findById(
-            licenseRequest.getProductId()
+                licenseRequest.getProductId()
         );
         LicenseType licenseType = licenseTypeService.findById(
-            licenseRequest.getTypeId()
+                licenseRequest.getTypeId()
         );
 
         license.setCode(licenseRequest.getCode());
@@ -120,13 +131,13 @@ public class LicenseService
         license.setProduct(product);
 
         licenseHistoryService.save(
-            new LicenseHistory(
-                license,
-                user,
-                "UPDATE",
-                new Date(),
-                "License updated"
-            )
+                new LicenseHistory(
+                        license,
+                        user,
+                        "UPDATE",
+                        new Date(),
+                        "License updated"
+                )
         );
 
         return repository.save(license);
@@ -134,22 +145,23 @@ public class LicenseService
 
     public License findByCode(String code) {
         return repository
-            .findByCode(code)
-            .orElseThrow(() ->
-                new EntityNotFoundException(
-                    "License not found with the given activation code"
-                )
-            );
+                .findByCode(code)
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "License not found with the given activation code"
+                        )
+                );
     }
 
     public LicenseResponse activateLicense(
-        String activationCode,
-        Device device,
-        String login
+            String activationCode,
+            Device device,
+            String login
     ) throws IllegalArgumentException, LicenseException {
         License license = this.findByCode(activationCode);
         User user = userService.findByLogin(login);
 
+        //TODO: 5.
         if (license.getUser() != null) {
             if (license.getUser().getId().equals(user.getId())) {
                 throw new LicenseException("License already activated");
@@ -165,29 +177,29 @@ public class LicenseService
         deviceLicenseService.createDeviceLicense(license, device);
 
         licenseHistoryService.save(
-            new LicenseHistory(
-                license,
-                license.getOwner(),
-                "ACTIVATED",
-                new Date(),
-                "License activated"
-            )
+                new LicenseHistory(
+                        license,
+                        license.getOwner(),
+                        "ACTIVATED",
+                        new Date(),
+                        "License activated"
+                )
         );
 
         return generateLicenseResponse(license, device);
     }
 
     public License getActiveLicenseForDevice(
-        Device device,
-        User user,
-        String code
+            Device device,
+            User user,
+            String code
     ) throws LicenseException {
         License license = this.findByCode(code);
         DeviceLicense deviceLicense =
-            deviceLicenseService.findByDeviceIdAndLicenseId(
-                device.getId(),
-                license.getId()
-            );
+                deviceLicenseService.findByDeviceIdAndLicenseId(
+                        device.getId(),
+                        license.getId()
+                );
 
         if (license.getIsBlocked()) {
             throw new LicenseException("License is blocked");
@@ -197,9 +209,9 @@ public class LicenseService
     }
 
     public LicenseResponse updateExistentLicense(
-        String licenseCode,
-        String login,
-        String macAddress
+            String licenseCode,
+            String login,
+            String macAddress
     ) throws IllegalArgumentException, LicenseException {
         License license = this.findByCode(licenseCode);
 
@@ -212,39 +224,39 @@ public class LicenseService
         }
 
         license.setEndingDate(
-            new Date(license.getEndingDate().getTime() + license.getDuration())
+                new Date(license.getEndingDate().getTime() + license.getDuration())
         );
         repository.save(license);
 
         licenseHistoryService.save(
-            new LicenseHistory(
-                license,
-                license.getOwner(),
-                "UPDATED BY USER",
-                new Date(),
-                "License updated"
-            )
+                new LicenseHistory(
+                        license,
+                        license.getOwner(),
+                        "UPDATED BY USER",
+                        new Date(),
+                        "License updated"
+                )
         );
 
         return generateLicenseResponse(
-            license,
-            deviceService.findByMacAddress(macAddress)
+                license,
+                deviceService.findByMacAddress(macAddress)
         );
     }
 
     public LicenseResponse generateLicenseResponse(
-        License license,
-        Device device
+            License license,
+            Device device
     ) {
         LicenseResponse licenseResponse = new LicenseResponse();
 
         licenseResponse.setCurrentDate(new Date());
         licenseResponse.setLifetime(license.getDuration());
         licenseResponse.setActivationDate(
-            new Date(license.getFirstActivationDate().getTime())
+                new Date(license.getFirstActivationDate().getTime())
         );
         licenseResponse.setExpirationDate(
-            new Date(license.getEndingDate().getTime())
+                new Date(license.getEndingDate().getTime())
         );
         licenseResponse.setUserId(license.getOwner().getId());
         licenseResponse.setDeviceId(device.getId());
@@ -255,24 +267,24 @@ public class LicenseService
     }
 
     private void validateActivation(
-        License license,
-        Device device,
-        String login
+            License license,
+            Device device,
+            String login
     ) throws LicenseException {
         if (license.getIsBlocked()) {
             throw new LicenseException("License is blocked");
         }
 
         if (
-            license.getEndingDate() != null ||
-            license.getEndingDate().before(new Date())
+                license.getEndingDate() != null ||
+                        license.getEndingDate().before(new Date())
         ) {
             throw new LicenseException("License is expired");
         }
 
         if (
-            license.getDevicesCount() <=
-            deviceLicenseService.findByLicense(license).size()
+                license.getDevicesCount() <=
+                        deviceLicenseService.findByLicense(license).size()
         ) {
             throw new LicenseException("Device count exceeded");
         }
@@ -281,7 +293,7 @@ public class LicenseService
     private void updateLicenseForActivation(License license, User user) {
         license.setFirstActivationDate(new Date());
         license.setEndingDate(
-            new Date(System.currentTimeMillis() + license.getDuration())
+                new Date(System.currentTimeMillis() + license.getDuration())
         );
         license.setUser(user);
 
@@ -296,15 +308,15 @@ public class LicenseService
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             String data =
-                licenseRequest.getProductId() +
-                licenseRequest.getUserId() +
-                licenseRequest.getTypeId() +
-                licenseRequest.getDeviceCount() +
-                licenseRequest.getDuration() +
-                licenseRequest.getDescription() +
-                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(
-                    LocalDateTime.now()
-                );
+                    licenseRequest.getProductId() +
+                            licenseRequest.getUserId() +
+                            licenseRequest.getTypeId() +
+                            licenseRequest.getDeviceCount() +
+                            licenseRequest.getDuration() +
+                            licenseRequest.getDescription() +
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(
+                                    LocalDateTime.now()
+                            );
             byte[] hash = digest.digest(data.getBytes(StandardCharsets.UTF_8));
             return Base64.getEncoder().encodeToString(hash);
         } catch (NoSuchAlgorithmException e) {
