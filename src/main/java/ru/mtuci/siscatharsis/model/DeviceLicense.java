@@ -12,7 +12,9 @@ import java.util.Date;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "device_licenses")
+@Table(
+name = "device_licenses",
+uniqueConstraints = @UniqueConstraint(columnNames = {"license_id", "device_id"}))
 public class DeviceLicense {
 
     @Id

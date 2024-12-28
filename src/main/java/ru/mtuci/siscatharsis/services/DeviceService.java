@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class DeviceService extends AbstractCRUDService<Device, DeviceRequest, DeviceRepository> {
+public class DeviceService extends AbstractCRUDService<Device, DeviceRepository> {
 
     private final UserService userService;
 
@@ -24,7 +24,6 @@ public class DeviceService extends AbstractCRUDService<Device, DeviceRequest, De
         this.userService = userService;
     }
 
-    @Override
     public Device create(DeviceRequest deviceRequest) {
         User user = userService.findById(deviceRequest.getUserId());
 
@@ -35,7 +34,6 @@ public class DeviceService extends AbstractCRUDService<Device, DeviceRequest, De
         return repository.save(device);
     }
 
-    @Override
     public Device update(Long id, DeviceRequest deviceRequest) {
         Device device = this.findById(id);
         User user = userService.findById(deviceRequest.getUserId());
@@ -60,20 +58,20 @@ public class DeviceService extends AbstractCRUDService<Device, DeviceRequest, De
         ));
     }
 
-    public Device registerOrUpdateDevice(LicenseActivationRequest activationRequest, User user) {
+    public List<Device> getByUserId(Long userId) {
+        return repository.getByUserId(userId);
+    }
+
+    // девайс к одному юзеру
+    public Device registerOrUpdateDevice(String macAddress, User user) {
         Device device;
         try {
-            device = this.findByMacAddress(activationRequest.getMacAddress());
-            if (!device.getUser().equals(user)) {
-                throw new IllegalArgumentException("Device already registered by another user");
-            }
+            device = this.findByMacAddressAndUser(macAddress, user);
         } catch (EntityNotFoundException e) {
             device = new Device();
-            device.setMacAddress(activationRequest.getMacAddress());
+            device.setMacAddress(macAddress);
             device.setUser(user);
         }
-
-        device.setName(activationRequest.getDeviceName());
 
         return repository.save(device);
     }

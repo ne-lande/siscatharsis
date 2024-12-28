@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -21,8 +22,8 @@ public class License {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "code")
-    private String code;
+    @Column(name = "code", unique = true, nullable = false, updatable = false)
+    private UUID code;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
@@ -45,8 +46,8 @@ public class License {
     @Column(name = "ending_date")
     private Date endingDate;
 
-    @Column(name = "is_blocked")
-    private Boolean isBlocked;
+    @Column(name = "is_blocked", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean isBlocked = false;
 
     @Column(name = "devices_count")
     private int devicesCount;
@@ -69,7 +70,7 @@ public class License {
     @JsonManagedReference
     private List<LicenseHistory> licenseHistories;
 
-    public License(Long id, String code, User user, Product product, LicenseType type, Date firstActivationDate, Date endingDate, Boolean isBlocked, int devicesCount, User owner, int duration, String description) {
+    public License(Long id, UUID code, User user, Product product, LicenseType type, Date firstActivationDate, Date endingDate, Boolean isBlocked, int devicesCount, User owner, int duration, String description) {
         this.id = id;
         this.code = code;
         this.user = user;
@@ -84,17 +85,16 @@ public class License {
         this.description = description;
     }
 
-    public License(String code, User user, Product product, LicenseType type, Date firstActivationDate, Date endingDate, Boolean isBlocked, int devicesCount, User owner, int duration, String description) {
-        this.code = code;
-        this.user = user;
+    // For creating in license service
+    public License(User owner, Product product, LicenseType type) {
+        this.code = UUID.randomUUID();
+
         this.product = product;
         this.type = type;
-        this.firstActivationDate = firstActivationDate;
-        this.endingDate = endingDate;
-        this.isBlocked = isBlocked;
-        this.devicesCount = devicesCount;
         this.owner = owner;
-        this.duration = duration;
-        this.description = description;
+
+        this.devicesCount = type.getDeviceCount();
+        this.duration = type.getDuration();
+        this.description = type.getDescription();
     }
 }

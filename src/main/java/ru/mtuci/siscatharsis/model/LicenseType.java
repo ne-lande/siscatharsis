@@ -24,8 +24,11 @@ public class LicenseType {
     @Column(name = "name")
     private String name;
 
-    @Column(name = "default_duration")
-    private int defaultDuration;
+    @Column(name = "duration")
+    private int duration;
+
+    @Column(name = "device_count")
+    private int deviceCount;
 
     @Column(name = "description")
     private String description;
@@ -34,16 +37,18 @@ public class LicenseType {
     @JsonBackReference
     private List<License> licenses;
 
-    public LicenseType(String name, int defaultDuration, String description, List<License> licenses) {
+    public LicenseType(String name, int duration, int device_count, String description, List<License> licenses) {
         this.name = name;
-        this.defaultDuration = defaultDuration;
+        this.duration = duration;
+        this.deviceCount = device_count;
         this.description = description;
         this.licenses = licenses;
     }
 
-    public LicenseType(String name, int defaultDuration, String description) {
+    public LicenseType(String name, int duration, String description, int deviceCount) {
         this.name = name;
-        this.defaultDuration = defaultDuration;
+        this.duration = duration;
         this.description = description;
+        this.deviceCount = deviceCount;
     }
 }

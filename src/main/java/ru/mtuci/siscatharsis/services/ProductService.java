@@ -11,14 +11,13 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class ProductService extends AbstractCRUDService<Product, ProductRequest, ProductRepository> {
+public class ProductService extends AbstractCRUDService<Product, ProductRepository> {
 
     @Autowired
     public ProductService(ProductRepository repository) {
         super(repository, Product.class);
     }
 
-    @Override
     public Product create(ProductRequest productRequest) {
         return repository.save(
             new Product(
@@ -28,7 +27,6 @@ public class ProductService extends AbstractCRUDService<Product, ProductRequest,
         );
     }
 
-    @Override
     public Product update(Long id, ProductRequest productRequest) {
         Product product = this.findById(id);
 

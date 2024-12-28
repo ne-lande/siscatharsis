@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import ru.mtuci.siscatharsis.utils.ApiMessage;
 import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
+import ru.mtuci.siscatharsis.utils.LicenseException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -19,6 +20,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({RuntimeException.class})
     public ResponseEntity<?> handleRuntimeException(RuntimeException exception) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(exception.getMessage());
+    }
+
+    @ExceptionHandler({LicenseException.class})
+    public ResponseEntity<?> handleLicenseException(LicenseException exception) {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(exception.getMessage());

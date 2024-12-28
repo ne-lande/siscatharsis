@@ -15,19 +15,17 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class UserService extends AbstractCRUDService<User, UserRequest, UserRepository> implements UserDetailsService {
+public class UserService extends AbstractCRUDService<User, UserRepository> implements UserDetailsService {
 
     @Autowired
     public UserService(UserRepository repository) {
         super(repository, User.class);
     }
 
-    @Override
     public User create(UserRequest userRequest) {
         return null;
     }
 
-    @Override
     public User update(Long id, UserRequest userRequest) {
         return null;
     }

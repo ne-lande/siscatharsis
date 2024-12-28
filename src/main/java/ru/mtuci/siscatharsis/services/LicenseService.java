@@ -7,33 +7,33 @@ import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
+import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.mtuci.siscatharsis.base.AbstractCRUDService;
-import ru.mtuci.siscatharsis.dto.internal.LicenseRequest;
-import ru.mtuci.siscatharsis.dto.license.LicenseResponse;
+import ru.mtuci.siscatharsis.dto.internal.license.request.LicenseUpdateRequest;
+import ru.mtuci.siscatharsis.dto.internal.license.request.LicenseCreateRequest;
+import ru.mtuci.siscatharsis.dto.license.Ticket;
 import ru.mtuci.siscatharsis.model.*;
 import ru.mtuci.siscatharsis.repositories.LicenseRepository;
 import ru.mtuci.siscatharsis.services.*;
 import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 import ru.mtuci.siscatharsis.utils.LicenseException;
+import ru.mtuci.siscatharsis.utils.CryptoUtil;
+
+
+// Я переместил тудушки туда где они исправлены
 
 //TODO: 1. Нужен рефакторинг. Много неиспользуемых переменных
-//TODO: 2. getActiveLicenseForDevice - судя по содержанию, лицензия достаётся не для конкретного устройства. Либо переименовать, либо изменить сам метод
 //TODO: 3. generateLicenseResponse - получается, что лицензия в тикете всегда разблокирована
 //TODO: 4. generateLicenseCode - подпись должна быть не просто хэшем. Нужно генерировать открытый ключ, чтобы клиент мог её проверить
 //TODO: 5. activateLicense - пересмотреть проверку. Пользователь должен иметь возможность повторно активировать лицензию на другом устройстве
-//TODO: 6. Дублируется код в create и update
-//TODO: 7. create - license.setDuration(licenseRequest.getDuration()); Лучше сделать в LicenceType свойство - defaultDuration и его использовать
-//TODO: 8. create - license.setProduct(product); Присутствует дважды
-//TODO: 9. update - если меняются свойства существующей лицензии, то не нужно менять код активации и владельца
 
 @Service
-public class LicenseService
-        extends AbstractCRUDService<License, LicenseRequest, LicenseRepository> {
-
+public class LicenseService extends AbstractCRUDService<License, LicenseRepository> {
     private final ProductService productService;
     private final UserService userService;
     private final LicenseTypeService licenseTypeService;
@@ -43,16 +43,10 @@ public class LicenseService
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public LicenseService(
-            LicenseRepository repository,
-            ProductService productService,
-            UserService userService,
-            LicenseTypeService licenseTypeService,
-            LicenseHistoryService licenseHistoryService,
-            DeviceLicenseService deviceLicenseService,
-            DeviceService deviceService,
-            PasswordEncoder passwordEncoder
-    ) {
+    public LicenseService(LicenseRepository repository, ProductService productService, UserService userService,
+                          LicenseTypeService licenseTypeService, LicenseHistoryService licenseHistoryService,
+                          DeviceLicenseService deviceLicenseService, DeviceService deviceService,
+                          PasswordEncoder passwordEncoder) {
         super(repository, License.class);
         this.productService = productService;
         this.userService = userService;
@@ -63,87 +57,57 @@ public class LicenseService
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Override
-    public License create(
-            LicenseRequest licenseRequest
-    ) /*throws IllegalArgumentException*/ {
-        Product product = productService.findById(
-                licenseRequest.getProductId()
-        );
-        User user = userService.findById(licenseRequest.getUserId());
-        LicenseType licenseType = licenseTypeService.findById(
-                licenseRequest.getTypeId()
+    //TODO: 6. Дублируется код в create и update
+    //TODO: 7. create - license.setDuration(licenseRequest.getDuration()); Лучше сделать в LicenceType свойство - defaultDuration и его использовать
+    //TODO: 8. create - license.setProduct(product); Присутствует дважды
+    public License create(LicenseCreateRequest licenseRequest) {
+        User owner = userService.findById(licenseRequest.getOwnerId());
+        Product product = productService.findById(licenseRequest.getProductId());
+        LicenseType licenseType = licenseTypeService.findById(licenseRequest.getTypeId());
+
+        License license = new License(
+            owner,
+            product,
+            licenseType
         );
 
-        String code = generateLicenseCode(licenseRequest);
-
-        License license = new License();
-        license.setCode(code);
-        license.setUser(null);
-        license.setProduct(product);
-        license.setType(licenseType);
-        license.setFirstActivationDate(null);
-        license.setEndingDate(null);
-        license.setIsBlocked(false);
-        license.setDevicesCount(licenseRequest.getDeviceCount());
-        license.setOwner(user);
-        license.setDuration(licenseRequest.getDuration());
+        license.setEndingDate(licenseRequest.getEndingDate());
         license.setDescription(licenseRequest.getDescription());
-        license.setProduct(product);
 
         repository.save(license);
 
-        licenseHistoryService.save(
-                new LicenseHistory(
-                        license,
-                        user,
-                        "CREATED",
-                        new Date(),
-                        "License created"
-                )
-        );
+        licenseHistoryService.save(LicenseHistory.create(license));
 
         return license;
     }
 
-    @Override
-    public License update(Long id, LicenseRequest licenseRequest) {
-        License license = this.findById(id);
+    //TODO: 6. Дублируется код в create и update
+    //TODO: 9. update - если меняются свойства существующей лицензии, то не нужно менять код активации и владельца
+    public License update(Long id, LicenseUpdateRequest licenseRequest) {
         User user = userService.findById(licenseRequest.getUserId());
-        Product product = productService.findById(
-                licenseRequest.getProductId()
-        );
-        LicenseType licenseType = licenseTypeService.findById(
-                licenseRequest.getTypeId()
-        );
+        Product product = productService.findById(licenseRequest.getProductId());
+        LicenseType licenseType = licenseTypeService.findById(licenseRequest.getTypeId());
 
-        license.setCode(licenseRequest.getCode());
-        license.setUser(null);
+        License license = this.findById(id);
+
+        license.setUser(user);
         license.setProduct(product);
         license.setType(licenseType);
-        license.setFirstActivationDate(null);
-        license.setEndingDate(null);
-        license.setIsBlocked(false);
+
+        license.setFirstActivationDate(licenseRequest.getFirstActivationDate());
+        license.setEndingDate(licenseRequest.getEndingDate());
+
+        license.setIsBlocked(licenseRequest.getIsBlocked());
         license.setDevicesCount(licenseRequest.getDeviceCount());
-        license.setOwner(user);
         license.setDuration(licenseRequest.getDuration());
         license.setDescription(licenseRequest.getDescription());
-        license.setProduct(product);
 
-        licenseHistoryService.save(
-                new LicenseHistory(
-                        license,
-                        user,
-                        "UPDATE",
-                        new Date(),
-                        "License updated"
-                )
-        );
+        licenseHistoryService.save(LicenseHistory.update(license));
 
         return repository.save(license);
     }
 
-    public License findByCode(String code) {
+    public License findByCode(UUID code) {
         return repository
                 .findByCode(code)
                 .orElseThrow(() ->
@@ -153,22 +117,12 @@ public class LicenseService
                 );
     }
 
-    public LicenseResponse activateLicense(
-            String activationCode,
-            Device device,
-            String login
-    ) throws IllegalArgumentException, LicenseException {
+    //TODO: 5. activateLicense - пересмотреть проверку. Пользователь должен иметь возможность повторно активировать лицензию на другом устройстве
+    public Ticket activateLicense(UUID activationCode, Device device, User user) throws IllegalArgumentException, LicenseException, Exception {
         License license = this.findByCode(activationCode);
-        User user = userService.findByLogin(login);
 
-        //TODO: 5.
-        if (license.getUser() != null) {
-            if (license.getUser().getId().equals(user.getId())) {
-                throw new LicenseException("License already activated");
-            }
-        }
-
-        validateActivation(license, device, login);
+        //TODO 5.
+        validateActivation(license, device, user);
 
         if (license.getFirstActivationDate() == null) {
             updateLicenseForActivation(license, user);
@@ -176,43 +130,30 @@ public class LicenseService
 
         deviceLicenseService.createDeviceLicense(license, device);
 
-        licenseHistoryService.save(
-                new LicenseHistory(
-                        license,
-                        license.getOwner(),
-                        "ACTIVATED",
-                        new Date(),
-                        "License activated"
-                )
-        );
+        licenseHistoryService.save(LicenseHistory.activate(license));
 
-        return generateLicenseResponse(license, device);
+        return generateTicket(license, device);
     }
 
-    public License getActiveLicenseForDevice(
-            Device device,
-            User user,
-            String code
-    ) throws LicenseException {
-        License license = this.findByCode(code);
-        DeviceLicense deviceLicense =
-                deviceLicenseService.findByDeviceIdAndLicenseId(
-                        device.getId(),
-                        license.getId()
-                );
+    //TODO: 2. getActiveLicenseForDevice - судя по содержанию, лицензия достаётся не для конкретного устройства. Либо переименовать, либо изменить сам метод
+    public List<License> getActiveLicensesForDevice(Device device) throws LicenseException {
+        List<DeviceLicense> deviceLicenses = deviceLicenseService.getByDeviceId(device.getId());
+        List<License> activeLicenses = new ArrayList<>();
 
-        if (license.getIsBlocked()) {
-            throw new LicenseException("License is blocked");
+        for (DeviceLicense deviceLicense : deviceLicenses) {
+            License license = this.findById(deviceLicense.getLicense().getId());
+
+            if (license.getIsBlocked()) {
+                continue; // Пропускаем заблокированные лицензии
+            }
+
+            activeLicenses.add(license);
         }
 
-        return license;
+        return activeLicenses;
     }
 
-    public LicenseResponse updateExistentLicense(
-            String licenseCode,
-            String login,
-            String macAddress
-    ) throws IllegalArgumentException, LicenseException {
+    public Ticket updateExistentLicense(UUID licenseCode,String login, String macAddress) throws IllegalArgumentException, LicenseException, Exception {
         License license = this.findByCode(licenseCode);
 
         if (license.getIsBlocked()) {
@@ -238,54 +179,49 @@ public class LicenseService
                 )
         );
 
-        return generateLicenseResponse(
+        User user = userService.findByLogin(login);
+
+        return generateTicket(
                 license,
-                deviceService.findByMacAddress(macAddress)
+                deviceService.findByMacAddressAndUser(macAddress, user)
         );
     }
 
-    public LicenseResponse generateLicenseResponse(
-            License license,
-            Device device
-    ) {
-        LicenseResponse licenseResponse = new LicenseResponse();
+    //TODO: 3. generateLicenseResponse - получается, что лицензия в тикете всегда разблокирована
+    public Ticket generateTicket(License license, Device device) throws Exception {
+        Ticket ticket = new Ticket();
 
-        licenseResponse.setCurrentDate(new Date());
-        licenseResponse.setLifetime(license.getDuration());
-        licenseResponse.setActivationDate(
-                new Date(license.getFirstActivationDate().getTime())
-        );
-        licenseResponse.setExpirationDate(
-                new Date(license.getEndingDate().getTime())
-        );
-        licenseResponse.setUserId(license.getOwner().getId());
-        licenseResponse.setDeviceId(device.getId());
-        licenseResponse.setIsBlocked(false);
-        licenseResponse.setSignature(generateSignature(licenseResponse));
+        ticket.setCurrentDate(new Date());
+        ticket.setLifetime(license.getDuration());
+        ticket.setActivationDate(license.getFirstActivationDate());
+        ticket.setExpirationDate(license.getEndingDate());
+        ticket.setUserId(device.getUser().getId());
+        ticket.setDeviceId(device.getId());
+        ticket.setIsBlocked(license.getIsBlocked());
 
-        return licenseResponse;
+        ticket.setSignature(CryptoUtil.sign(ticket.toString()));
+
+        return ticket;
     }
 
-    private void validateActivation(
-            License license,
-            Device device,
-            String login
-    ) throws LicenseException {
+    private void validateActivation(License license, Device device, User user) throws LicenseException {
+        if (license.getUser() != null) {
+            if (license.getUser().getId() != user.getId()) {
+                throw new LicenseException("License already activated by another user");
+            }
+        }
+
         if (license.getIsBlocked()) {
             throw new LicenseException("License is blocked");
         }
 
-        if (
-                license.getEndingDate() != null ||
-                        license.getEndingDate().before(new Date())
-        ) {
-            throw new LicenseException("License is expired");
+        if (license.getEndingDate() != null) {
+            if (license.getEndingDate().before(new Date())) {
+                throw new LicenseException("License is expired");
+            }
         }
 
-        if (
-                license.getDevicesCount() <=
-                        deviceLicenseService.findByLicense(license).size()
-        ) {
+        if (license.getDevicesCount() <= deviceLicenseService.getByLicenseId(license.getId()).size()) {
             throw new LicenseException("Device count exceeded");
         }
     }
@@ -298,29 +234,5 @@ public class LicenseService
         license.setUser(user);
 
         repository.save(license);
-    }
-
-    public String generateSignature(LicenseResponse licenseResponse) {
-        return passwordEncoder.encode(licenseResponse.getBodyForSigning());
-    }
-
-    private String generateLicenseCode(LicenseRequest licenseRequest) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            String data =
-                    licenseRequest.getProductId() +
-                            licenseRequest.getUserId() +
-                            licenseRequest.getTypeId() +
-                            licenseRequest.getDeviceCount() +
-                            licenseRequest.getDuration() +
-                            licenseRequest.getDescription() +
-                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(
-                                    LocalDateTime.now()
-                            );
-            byte[] hash = digest.digest(data.getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(hash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error generating license code", e);
-        }
     }
 }

@@ -6,17 +6,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Date;
+import java.util.UUID;
+
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-public class LicenseUpdateRequest {
-    @NotBlank(message = "Login is empty")
-    private String login;
+@AllArgsConstructor
+public class LicenseInfoRequest {
 
-    @NotBlank(message = "License code is empty")
-    private String licenseCode;
-
-    @NotBlank(message = "MAC address is empty")
+    @NotBlank(message = "MAC address cannot be empty")
     private String macAddress;
+
+    //@NotBlank(message = "Code cannot be empty")
+    private UUID licenseCode;
+
 }

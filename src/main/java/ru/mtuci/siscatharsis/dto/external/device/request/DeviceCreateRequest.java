@@ -1,18 +1,18 @@
-package ru.mtuci.siscatharsis.dto.license;
+package ru.mtuci.siscatharsis.dto.external.device.request;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class LicenseActivationRequest {
-
-    @NotBlank(message = "Activation code is empty")
-    private String activationCode;
-
+@AllArgsConstructor
+@NoArgsConstructor
+public class DeviceCreateRequest {
     @NotBlank(message = "Device name is empty")
-    private String deviceName;
+    private String name;
 
     @NotBlank(message = "Mac address is empty")
     private String macAddress;

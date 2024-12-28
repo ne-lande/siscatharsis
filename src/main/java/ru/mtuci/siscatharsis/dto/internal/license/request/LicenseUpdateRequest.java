@@ -1,4 +1,4 @@
-package ru.mtuci.siscatharsis.dto.internal;
+package ru.mtuci.siscatharsis.dto.internal.license.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -12,16 +12,15 @@ import java.util.Date;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class LicenseRequest {
-    private String code;
+public class LicenseUpdateRequest{
     private Long userId;
     private Long productId;
     private Long typeId;
+
     private Date firstActivationDate;
     private Date endingDate;
     private Boolean isBlocked;
     private Integer deviceCount;
-    private Long ownerId;
     private Integer duration;
     private String description;
 }
