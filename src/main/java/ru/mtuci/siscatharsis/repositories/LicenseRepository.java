@@ -6,8 +6,9 @@ import ru.mtuci.siscatharsis.model.License;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface LicenseRepository extends JpaRepository<License, Long> {
-    Optional<License> findByCode(String code);
+    Optional<License> findByCode(UUID code);
 }

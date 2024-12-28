@@ -11,7 +11,7 @@ import ru.mtuci.siscatharsis.base.AbstractCRUDService;
 import java.util.List;
 
 @Service
-public class LicenseHistoryService extends AbstractCRUDService<LicenseHistory, LicenseHistoryRequest, LicenseHistoryRepository> {
+public class LicenseHistoryService extends AbstractCRUDService<LicenseHistory, LicenseHistoryRepository> {
 
     /* BIG EXPLANATION
 
@@ -24,15 +24,5 @@ public class LicenseHistoryService extends AbstractCRUDService<LicenseHistory, L
     @Autowired
     public LicenseHistoryService(LicenseHistoryRepository repository) {
         super(repository, LicenseHistory.class);
-    }
-
-    @Override
-    public LicenseHistory create(LicenseHistoryRequest licenseHistoryRequest) {
-        return null;
-    }
-
-    @Override
-    public LicenseHistory update(Long id, LicenseHistoryRequest licenseHistoryRequest) {
-        return null;
     }
 }

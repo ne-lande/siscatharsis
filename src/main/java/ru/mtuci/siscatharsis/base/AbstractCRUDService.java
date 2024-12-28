@@ -6,7 +6,7 @@ import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
-public abstract class AbstractCRUDService<Model, DTO, Repository extends JpaRepository<Model, Long>> {
+public abstract class AbstractCRUDService<Model, Repository extends JpaRepository<Model, Long>> {
 
     private final Class<Model> modelClass;
     protected final Repository repository;
@@ -34,8 +34,4 @@ public abstract class AbstractCRUDService<Model, DTO, Repository extends JpaRepo
     public void save(Model entity) {
         repository.save(entity);
     }
-
-    public abstract Model create(DTO entityDto);
-
-    public abstract Model update(Long id, DTO entityDto);
 }

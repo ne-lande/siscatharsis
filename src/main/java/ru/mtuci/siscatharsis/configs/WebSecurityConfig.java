@@ -19,7 +19,8 @@ import ru.mtuci.siscatharsis.utils.JwtRequestFilter;
 @EnableMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
 
-    private static final String[] PUBLIC_ENDPOINTS = {"/auth/login", "/auth/register", "/secret"};
+    private static final String[] PUBLIC_ENDPOINTS = {
+        "/auth/**", "/license-type/**", "/product/**", "/actuator/**"};
     private static final int BCRYPT_STRENGTH = 12;
     private final JwtRequestFilter jwtRequestFilter;
 
@@ -32,7 +33,7 @@ public class WebSecurityConfig {
         httpSecurity
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/auth/login", "/auth/register", "/secret").permitAll()
+                .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

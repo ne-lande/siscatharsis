@@ -3,20 +3,21 @@ package ru.mtuci.siscatharsis.controller.internal;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
 import ru.mtuci.siscatharsis.base.AbstractCRUDController;
 import ru.mtuci.siscatharsis.dto.internal.UserRequest;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.services.UserService;
 import ru.mtuci.siscatharsis.repositories.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/admin/user")
 @PreAuthorize("hasRole('ROLE_ADMIN')")
-public class UserController extends AbstractCRUDController<User, UserRequest, UserRepository, UserService> {
+public class UserController extends AbstractCRUDController<User, UserRepository, UserService> {
 
     //private final UserService userService;
     private final PasswordEncoder passwordEncoder;
@@ -27,7 +28,6 @@ public class UserController extends AbstractCRUDController<User, UserRequest, Us
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Override
     protected User createEntity(UserRequest userRequest) {
         if (service.findByLogin(userRequest.getLogin()) != null) {
             throw new IllegalArgumentException("Login already assigned");
@@ -42,7 +42,6 @@ public class UserController extends AbstractCRUDController<User, UserRequest, Us
         return user;
     }
 
-    @Override
     protected User updateEntity(Long id, UserRequest userRequest) {
         User user = service.findById(id);
 

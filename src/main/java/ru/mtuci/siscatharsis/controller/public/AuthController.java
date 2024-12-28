@@ -27,20 +27,15 @@ public class AuthController {
     private final JwtUtil jwtUtil;
 
     @Autowired
-    public AuthController(
-        UserService userService,
-        PasswordEncoder passwordEncoder,
-        JwtUtil jwtUtil
-    ) {
+    public AuthController(UserService userService, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> userRegistration(
-        @Valid @RequestBody UserRegister userRequest
-    ) {
+    public ResponseEntity<?> userRegistration(@Valid @RequestBody UserRegister userRequest) {
+        // ЭТО УМНЕЕ СДЕЛАТЬ
         try {
             userService.findByLogin(userRequest.getLogin());
             userService.findByEmail(userRequest.getEmail());
@@ -71,17 +66,13 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> userLogin(
-        @Valid @RequestBody UserLogin userRequest
-    ) {
+    public ResponseEntity<?> userLogin(@Valid @RequestBody UserLogin userRequest) {
         User user = userService.findByLogin(userRequest.getLogin());
 
-        if (
-            !passwordEncoder.matches(
+        if (!passwordEncoder.matches(
                 userRequest.getPassword(),
                 user.getPassword()
-            )
-        ) {
+            )) {
             return ApiMessage.BadRequest("Invalid credentials");
         }
 

@@ -7,10 +7,12 @@ import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.model.User;
 
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface DeviceRepository extends JpaRepository<Device, Long> {
     Optional<Device> findByMacAddressAndUser(String macAddress, User user);
     Optional<Device> findByMacAddress(String macAddress);
     Optional<Device> findByUser(User user);
+    List<Device> getByUserId(Long userId);
 }

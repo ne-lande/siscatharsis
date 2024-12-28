@@ -14,21 +14,11 @@ import java.util.List;
 import java.util.Date;
 
 @Service
-public class DeviceLicenseService extends AbstractCRUDService<DeviceLicense, DeviceLicenseRequest, DeviceLicenseRepository> {
+public class DeviceLicenseService extends AbstractCRUDService<DeviceLicense, DeviceLicenseRepository> {
 
     @Autowired
     public DeviceLicenseService(DeviceLicenseRepository repository) {
         super(repository, DeviceLicense.class);
-    }
-
-    @Override
-    public DeviceLicense create(DeviceLicenseRequest deviceLicenseRequest) {
-        return null;
-    }
-
-    @Override
-    public DeviceLicense update(Long id, DeviceLicenseRequest deviceLicenseRequest) {
-        return null;
     }
 
     public DeviceLicense createDeviceLicense(License license, Device device) {
@@ -41,8 +31,12 @@ public class DeviceLicenseService extends AbstractCRUDService<DeviceLicense, Dev
         return deviceLicense;
     }
 
-    public List<DeviceLicense> findByLicense(License license) {
-        return repository.findByLicense(license);
+    public List<DeviceLicense> getByDeviceId(Long deviceId) {
+        return repository.getByDeviceId(deviceId);
+    }
+
+    public List<DeviceLicense> getByLicenseId(Long licenseId) {
+        return repository.getByLicenseId(licenseId);
     }
 
     public DeviceLicense findByDeviceIdAndLicenseId(Long deviceId, Long licenseId) {

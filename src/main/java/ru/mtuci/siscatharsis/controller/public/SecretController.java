@@ -9,6 +9,9 @@ import ru.mtuci.siscatharsis.utils.ApiMessage;
 
 //TODO: 1. Лучше воспользоваться Spring Boot Actuator
 
+// Теперь это обрататывается на /actuator/healthcheck
+//
+/*
 @RestController
 public class SecretController {
 
@@ -17,8 +20,8 @@ public class SecretController {
 
     @GetMapping("/secret")
     public String secret() {
-        //console.log("I AM HERE");
+        console.log("I AM HERE");
         return "This is secret endpoint which tells that server is working fine. ALAS: ALIIIIIVEEEEE";
-        //return ApiMessage.Secret("This is secret endpoint which tells that server is working fine. ALAS: ALIIIIIVEEEEE");
     }
 }
+*/

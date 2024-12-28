@@ -11,14 +11,13 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class LicenseTypeService extends AbstractCRUDService<LicenseType, LicenseTypeRequest, LicenseTypeRepository>{
+public class LicenseTypeService extends AbstractCRUDService<LicenseType, LicenseTypeRepository>{
 
     @Autowired
     public LicenseTypeService(LicenseTypeRepository repository) {
         super(repository, LicenseType.class);
     }
 
-    @Override
     public LicenseType create(LicenseTypeRequest licenseTypeRequest) {
         return repository.save(
             new LicenseType(
@@ -29,12 +28,11 @@ public class LicenseTypeService extends AbstractCRUDService<LicenseType, License
         );
     }
 
-    @Override
     public LicenseType update(Long id, LicenseTypeRequest licenseTypeRequest) {
         LicenseType licenseType = this.findById(id);
 
         licenseType.setName(licenseTypeRequest.getName());
-        licenseType.setDefaultDuration(licenseTypeRequest.getDefaultDuration());
+        licenseType.setDuration(licenseTypeRequest.getDefaultDuration());
         licenseType.setDescription(licenseTypeRequest.getDescription());
         return repository.save(licenseType);
     }

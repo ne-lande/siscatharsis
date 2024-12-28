@@ -46,4 +46,20 @@ public class LicenseHistory {
         this.changeDate = changeDate;
         this.description = description;
     }
+
+    public static LicenseHistory activate(License license) {
+        return new LicenseHistory(license, license.getOwner(), "ACTIVATED", new Date(), "License activated by user");
+    }
+
+    public static LicenseHistory UpdateOnDevice(License license) {
+        return new LicenseHistory(license, license.getOwner(), "UPDATED", new Date(), "License updated on device");
+    }
+
+    public static LicenseHistory create(License license) {
+        return new LicenseHistory(license, license.getOwner(), "CREATED", new Date(), "License created by admin");
+    }
+
+    public static LicenseHistory update(License license) {
+        return new LicenseHistory(license, license.getOwner(), "UPDATED", new Date(), "License updated by admin");
+    }
 }
