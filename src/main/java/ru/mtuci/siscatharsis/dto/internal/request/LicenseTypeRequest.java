@@ -18,5 +18,6 @@ public class LicenseTypeRequest {
     @NotBlank(message = "Description is empty")
     private String description;
 
-
+    @NotNull
+    private int defaultDeviceCount;
 }

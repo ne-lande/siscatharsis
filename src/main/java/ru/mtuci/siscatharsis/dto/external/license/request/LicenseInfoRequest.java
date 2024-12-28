@@ -18,7 +18,7 @@ public class LicenseInfoRequest {
     @NotBlank(message = "MAC address cannot be empty")
     private String macAddress;
 
-    @NotBlank(message = "Code cannot be empty")
+    //@NotBlank(message = "Code cannot be empty")
     private UUID licenseCode;
 
 }

@@ -45,9 +45,10 @@ public class LicenseType {
         this.licenses = licenses;
     }
 
-    public LicenseType(String name, int duration, String description) {
+    public LicenseType(String name, int duration, String description, int deviceCount) {
         this.name = name;
         this.duration = duration;
         this.description = description;
+        this.deviceCount = deviceCount;
     }
 }

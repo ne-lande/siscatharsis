@@ -16,7 +16,7 @@ public class LicenseUpdateRequest {
     @NotBlank(message = "Login is empty")
     private String login;
 
-    @NotBlank(message = "License code is empty")
+    //@NotBlank(message = "License code is empty")
     private UUID licenseCode;
 
     @NotBlank(message = "MAC address is empty")

@@ -29,11 +29,17 @@ public class PublicDeviceController {
     @PostMapping("/create")
     public ResponseEntity<?> create(@Valid @RequestBody DeviceCreateRequest deviceRequest) {
         User user = userService.findByLogin(SecurityContextHolder.getContext().getAuthentication().getName());
+        Device device;
 
-        Device device = new Device(deviceRequest.getName(), deviceRequest.getMacAddress(), user);
-        deviceService.save(device);
+        try {
+            device = deviceService.findByMacAddressAndUser(deviceRequest.getMacAddress(), user);
+            return ApiMessage.BadRequest("device already exists");
+        } catch (Exception e) {
+            device = new Device(deviceRequest.getName(), deviceRequest.getMacAddress(), user);
+            deviceService.save(device);
 
-        return ApiMessage.Success(device);
+            return ApiMessage.Success(device);
+        }
     }
 
     @GetMapping("/get/{id}")

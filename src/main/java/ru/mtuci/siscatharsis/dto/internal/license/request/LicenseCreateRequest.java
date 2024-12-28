@@ -16,4 +16,7 @@ public class LicenseCreateRequest{
     private Long ownerId;
     private Long productId;
     private Long typeId;
+
+    private Date endingDate;
+    private String description;
 }

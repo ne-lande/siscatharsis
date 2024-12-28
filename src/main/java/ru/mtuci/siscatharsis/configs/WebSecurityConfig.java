@@ -20,7 +20,11 @@ import ru.mtuci.siscatharsis.utils.JwtRequestFilter;
 public class WebSecurityConfig {
 
     private static final String[] PUBLIC_ENDPOINTS = {
-        "/auth/**", "/license-type/**", "/product/**", "/actuator/**"};
+        "/auth/**",
+        "/license-type/**",
+        "/product/**",
+        "/actuator/health",
+    };
     private static final int BCRYPT_STRENGTH = 12;
     private final JwtRequestFilter jwtRequestFilter;
 
@@ -29,17 +33,24 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity)
+        throws Exception {
         httpSecurity
             .csrf(csrf -> csrf.disable())
-            .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                .anyRequest().authenticated()
+            .authorizeHttpRequests(authorize ->
+                authorize
+                    .requestMatchers(PUBLIC_ENDPOINTS)
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated()
             )
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(
+                jwtRequestFilter,
+                UsernamePasswordAuthenticationFilter.class
+            );
 
         return httpSecurity.build();
     }
@@ -50,7 +61,9 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(
+        AuthenticationConfiguration authenticationConfiguration
+    ) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 }

@@ -62,13 +62,11 @@ public class DeviceService extends AbstractCRUDService<Device, DeviceRepository>
         return repository.getByUserId(userId);
     }
 
+    // девайс к одному юзеру
     public Device registerOrUpdateDevice(String macAddress, User user) {
         Device device;
         try {
-            device = this.findByMacAddress(macAddress);
-            if (!device.getUser().equals(user)) {
-                throw new IllegalArgumentException("Device already registered by another user");
-            }
+            device = this.findByMacAddressAndUser(macAddress, user);
         } catch (EntityNotFoundException e) {
             device = new Device();
             device.setMacAddress(macAddress);

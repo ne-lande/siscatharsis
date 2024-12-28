@@ -23,7 +23,8 @@ public class LicenseTypeService extends AbstractCRUDService<LicenseType, License
             new LicenseType(
                 licenseTypeRequest.getName(),
                 licenseTypeRequest.getDefaultDuration(),
-                licenseTypeRequest.getDescription()
+                licenseTypeRequest.getDescription(),
+                licenseTypeRequest.getDefaultDeviceCount()
             )
         );
     }
@@ -34,6 +35,8 @@ public class LicenseTypeService extends AbstractCRUDService<LicenseType, License
         licenseType.setName(licenseTypeRequest.getName());
         licenseType.setDuration(licenseTypeRequest.getDefaultDuration());
         licenseType.setDescription(licenseTypeRequest.getDescription());
+        licenseType.setDeviceCount(licenseTypeRequest.getDefaultDeviceCount());
+
         return repository.save(licenseType);
     }
 }

@@ -27,10 +27,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        try{
+        try {
             String token = resolveToken(request);
 
-            if(token != null && jwtUtil.validateToken(token)){
+            if (token != null && jwtUtil.validateToken(token)){
                 String username = jwtUtil.extractLogin(token);
                 if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
                     UserDetails userDetails = userService.findByLogin(username);

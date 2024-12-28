@@ -71,6 +71,9 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
             licenseType
         );
 
+        license.setEndingDate(licenseRequest.getEndingDate());
+        license.setDescription(licenseRequest.getDescription());
+
         repository.save(license);
 
         licenseHistoryService.save(LicenseHistory.create(license));
@@ -176,9 +179,11 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
                 )
         );
 
+        User user = userService.findByLogin(login);
+
         return generateTicket(
                 license,
-                deviceService.findByMacAddress(macAddress)
+                deviceService.findByMacAddressAndUser(macAddress, user)
         );
     }
 
@@ -200,8 +205,8 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
     }
 
     private void validateActivation(License license, Device device, User user) throws LicenseException {
-        if (license.getUser() != user) {
-            if (!license.getUser().getId().equals(user.getId())) {
+        if (license.getUser() != null) {
+            if (license.getUser().getId() != user.getId()) {
                 throw new LicenseException("License already activated by another user");
             }
         }
@@ -210,8 +215,10 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
             throw new LicenseException("License is blocked");
         }
 
-        if (license.getEndingDate() != null || license.getEndingDate().before(new Date())) {
-            throw new LicenseException("License is expired");
+        if (license.getEndingDate() != null) {
+            if (license.getEndingDate().before(new Date())) {
+                throw new LicenseException("License is expired");
+            }
         }
 
         if (license.getDevicesCount() <= deviceLicenseService.getByLicenseId(license.getId()).size()) {
