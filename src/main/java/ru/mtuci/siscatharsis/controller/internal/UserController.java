@@ -1,18 +1,15 @@
 package ru.mtuci.siscatharsis.controller.internal;
 
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import ru.mtuci.siscatharsis.base.AbstractCRUDController;
-import ru.mtuci.siscatharsis.dto.internal.UserRequest;
+import ru.mtuci.siscatharsis.dto.internal.request.UserRequest;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.services.UserService;
 import ru.mtuci.siscatharsis.repositories.UserRepository;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/admin/user")

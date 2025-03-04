@@ -1,7 +1,5 @@
-package ru.mtuci.siscatharsis.dto.license;
+package ru.mtuci.siscatharsis.dto.external.license.response;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

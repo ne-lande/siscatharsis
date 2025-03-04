@@ -4,7 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 
 import java.util.List;
-import java.util.Optional;
 
 public abstract class AbstractCRUDService<Model, Repository extends JpaRepository<Model, Long>> {
 

@@ -2,13 +2,11 @@ package ru.mtuci.siscatharsis.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.mtuci.siscatharsis.dto.internal.LicenseTypeRequest;
+
+import ru.mtuci.siscatharsis.dto.internal.request.LicenseTypeRequest;
 import ru.mtuci.siscatharsis.model.LicenseType;
 import ru.mtuci.siscatharsis.repositories.LicenseTypeRepository;
 import ru.mtuci.siscatharsis.base.AbstractCRUDService;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class LicenseTypeService extends AbstractCRUDService<LicenseType, LicenseTypeRepository>{

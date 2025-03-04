@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import ru.mtuci.siscatharsis.dto.internal.ProductRequest;
+import ru.mtuci.siscatharsis.dto.internal.request.ProductRequest;
 import ru.mtuci.siscatharsis.model.Product;
 import ru.mtuci.siscatharsis.services.ProductService;
 import ru.mtuci.siscatharsis.repositories.ProductRepository;

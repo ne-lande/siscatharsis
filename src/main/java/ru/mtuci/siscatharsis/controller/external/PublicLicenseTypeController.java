@@ -1,11 +1,9 @@
-package ru.mtuci.siscatharsis.controller.internal;
+package ru.mtuci.siscatharsis.controller.external;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.context.SecurityContextHolder;
 
-import ru.mtuci.siscatharsis.model.LicenseType;
 import ru.mtuci.siscatharsis.services.LicenseTypeService;
 import ru.mtuci.siscatharsis.utils.ApiMessage;
 

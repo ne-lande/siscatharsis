@@ -1,4 +1,4 @@
-package ru.mtuci.siscatharsis.dto.internal;
+package ru.mtuci.siscatharsis.dto.internal.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
