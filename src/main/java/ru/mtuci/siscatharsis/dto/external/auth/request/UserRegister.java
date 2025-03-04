@@ -1,4 +1,4 @@
-package ru.mtuci.siscatharsis.dto.auth;
+package ru.mtuci.siscatharsis.dto.external.auth.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
