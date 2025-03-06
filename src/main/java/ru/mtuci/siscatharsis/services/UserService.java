@@ -45,4 +45,8 @@ public class UserService extends AbstractCRUDService<User, UserRepository> imple
                 () -> new UsernameNotFoundException("User not found by email")
             );
     }
+
+    public Boolean existsByLoginAndEmail(String login, String email) {
+        return repository.existsByLoginAndEmail(login, email);
+    }
 }

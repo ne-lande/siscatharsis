@@ -15,8 +15,10 @@ import ru.mtuci.siscatharsis.dto.external.auth.request.UserLogin;
 import ru.mtuci.siscatharsis.dto.external.auth.request.UserRegister;
 import ru.mtuci.siscatharsis.dto.external.auth.response.UserTokenResponse;
 import ru.mtuci.siscatharsis.enums.UserRoleEnum;
+import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.model.RefreshToken;
 import ru.mtuci.siscatharsis.model.User;
+import ru.mtuci.siscatharsis.services.DeviceService;
 import ru.mtuci.siscatharsis.services.JwtService;
 import ru.mtuci.siscatharsis.services.RefreshTokenService;
 import ru.mtuci.siscatharsis.services.UserService;
@@ -24,62 +26,73 @@ import ru.mtuci.siscatharsis.utils.ApiMessage;
 import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 import ru.mtuci.siscatharsis.utils.JwtUtil;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
     private final JwtService jwtService;
-    private final RefreshTokenService refreshTokenService;
+    private final DeviceService deviceService;
     private final AuthenticationManager authenticationManager;
 
     @Autowired
-    public AuthController(UserService userService, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, JwtService jwtService, RefreshTokenService refreshTokenService, AuthenticationManager authenticationManager) {
+    public AuthController(UserService userService, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, JwtService jwtService, DeviceService deviceService, AuthenticationManager authenticationManager) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = jwtUtil;
         this.jwtService = jwtService;
-        this.refreshTokenService = refreshTokenService;
+        this.deviceService = deviceService;
         this.authenticationManager = authenticationManager;
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> userRegistration(@Valid @RequestBody UserRegister userRequest) {
-        // ЭТО УМНЕЕ СДЕЛАТЬ
-        try {
-            userService.findByLogin(userRequest.getLogin());
-            userService.findByEmail(userRequest.getEmail());
+        String login = userRequest.getLogin();
+        String email = userRequest.getEmail();
+
+        String deviceName = userRequest.getDeviceName();
+        String macAddress = userRequest.getMacAddress();
+
+        if (userService.existsByLoginAndEmail(login, email)) {
             return ApiMessage.BadRequest("User already exists");
-        } catch (UsernameNotFoundException e) {
-            assert true;
-        } catch (EntityNotFoundException e) {
-            assert true;
         }
 
         userService.save(
             new User(
-                userRequest.getLogin(),
+                login,
                 passwordEncoder.encode(userRequest.getPassword()),
-                userRequest.getEmail(),
+                email,
                 UserRoleEnum.ROLE_USER,
                 null
             )
         );
 
+        User user =  userService.findByLogin(login);
+        deviceService.save(
+                Device.builder()
+                        .user(user)
+                        .name(deviceName)
+                        .macAddress(macAddress)
+                        .build()
+        );
+
+        Device device = deviceService.findByMacAddressAndUser(macAddress, user);
         UserDetails userDetails = userService.loadUserByUsername(
             userRequest.getLogin()
         );
-        String token = jwtUtil.generateToken(userDetails);
 
-        return ApiMessage.Success(token);
+        UserTokenResponse response = jwtService.generateTokenPair(userDetails, device.getId());
+
+        return ApiMessage.Success(response);
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> userLogin(@Valid @RequestBody UserLogin userRequest) {
         String username = userRequest.getLogin();
         String password = userRequest.getPassword();
+        Long deviceId = userRequest.getDeviceId();
 
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
 
@@ -88,12 +101,8 @@ public class AuthController {
             return ApiMessage.BadRequest("Invalid credentials");
         }
 
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(username);
-
-        UserTokenResponse response = UserTokenResponse.builder()
-                .accessToken(jwtService.GenerateToken(username))
-                .token(refreshToken.getToken())
-                .build();
+        UserDetails userDetails = userService.loadUserByUsername(username);
+        UserTokenResponse response = jwtService.generateTokenPair(userDetails, deviceId);
 
         return ApiMessage.Success(response);
     }
@@ -102,16 +111,12 @@ public class AuthController {
     public ResponseEntity<?> refreshToken(@RequestBody TokenRefresh userRequest) {
         String token = userRequest.getToken();
 
-        UserTokenResponse response = refreshTokenService.findByToken(token)
-                .map(refreshTokenService::verifyExpiration)
-                .map(RefreshToken::getUser)
-                .map(user -> {
-                    String accessToken = jwtService.GenerateToken(user.getUsername());
-                    return UserTokenResponse.builder()
-                            .accessToken(accessToken)
-                            .token(token)
-                            .build();
-                }).orElseThrow(() -> new RuntimeException("No refresh Token found"));
+        String login = jwtService.extractLogin(token);
+        Long deviceId = jwtService.extractDeviceId(token);
+        UUID tokenId = jwtService.extractRefreshTokenId(token);
+        UserDetails userDetails = userService.loadUserByUsername(login);
+
+        UserTokenResponse response = jwtService.rotateToken(tokenId, login, deviceId);
 
         return ApiMessage.Success(response);
     }

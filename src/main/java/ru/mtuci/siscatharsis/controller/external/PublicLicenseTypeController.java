@@ -18,6 +18,7 @@ public class PublicLicenseTypeController {
         this.licenseTypeService = licenseTypeService;
     }
 
+    // this is insufficient
     @GetMapping("/get/{id}")
     public ResponseEntity<?> getById(@PathVariable Long id) {
         return ApiMessage.Success(licenseTypeService.findById(id));

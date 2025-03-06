@@ -22,4 +22,7 @@ public class UserRegister {
     @NotBlank(message = "email cannot be empty")
     @Email(message = "email should be valid")
     private String email;
+
+    private String deviceName;
+    private String macAddress;
 }

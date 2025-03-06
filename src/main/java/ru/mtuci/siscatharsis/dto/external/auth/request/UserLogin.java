@@ -17,4 +17,6 @@ public class UserLogin {
 
     @NotBlank(message = "Password is empty")
     private String password;
+
+    private Long deviceId;
 }
