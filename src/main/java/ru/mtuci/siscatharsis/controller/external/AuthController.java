@@ -7,7 +7,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import ru.mtuci.siscatharsis.dto.external.auth.request.TokenRefresh;
@@ -16,15 +15,11 @@ import ru.mtuci.siscatharsis.dto.external.auth.request.UserRegister;
 import ru.mtuci.siscatharsis.dto.external.auth.response.UserTokenResponse;
 import ru.mtuci.siscatharsis.enums.UserRoleEnum;
 import ru.mtuci.siscatharsis.model.Device;
-import ru.mtuci.siscatharsis.model.RefreshToken;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.services.DeviceService;
 import ru.mtuci.siscatharsis.services.JwtService;
-import ru.mtuci.siscatharsis.services.RefreshTokenService;
 import ru.mtuci.siscatharsis.services.UserService;
 import ru.mtuci.siscatharsis.utils.ApiMessage;
-import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
-import ru.mtuci.siscatharsis.utils.JwtUtil;
 
 import java.util.UUID;
 
@@ -39,7 +34,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
 
     @Autowired
-    public AuthController(UserService userService, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, JwtService jwtService, DeviceService deviceService, AuthenticationManager authenticationManager) {
+    public AuthController(UserService userService, PasswordEncoder passwordEncoder, JwtService jwtService, DeviceService deviceService, AuthenticationManager authenticationManager) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
@@ -59,17 +54,19 @@ public class AuthController {
             return ApiMessage.BadRequest("User already exists");
         }
 
+        String passwordHash = passwordEncoder.encode(userRequest.getPassword());
+
         userService.save(
-            new User(
-                login,
-                passwordEncoder.encode(userRequest.getPassword()),
-                email,
-                UserRoleEnum.ROLE_USER,
-                null
-            )
+                User.builder()
+                        .login(login)
+                        .email(email)
+                        .passwordHash(passwordHash)
+                        .role(UserRoleEnum.ROLE_USER)
+                        .licenses(null)
+                        .build()
         );
 
-        User user =  userService.findByLogin(login);
+        User user = userService.findByLogin(login);
         deviceService.save(
                 Device.builder()
                         .user(user)
@@ -79,10 +76,7 @@ public class AuthController {
         );
 
         Device device = deviceService.findByMacAddressAndUser(macAddress, user);
-        UserDetails userDetails = userService.loadUserByUsername(
-            userRequest.getLogin()
-        );
-
+        UserDetails userDetails = userService.loadUserByUsername(login);
         UserTokenResponse response = jwtService.generateTokenPair(userDetails, device.getId());
 
         return ApiMessage.Success(response);
@@ -114,7 +108,6 @@ public class AuthController {
         String login = jwtService.extractLogin(token);
         Long deviceId = jwtService.extractDeviceId(token);
         UUID tokenId = jwtService.extractRefreshTokenId(token);
-        UserDetails userDetails = userService.loadUserByUsername(login);
 
         UserTokenResponse response = jwtService.rotateToken(tokenId, login, deviceId);
 

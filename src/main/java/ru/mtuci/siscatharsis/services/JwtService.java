@@ -12,7 +12,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import ru.mtuci.siscatharsis.dto.external.auth.response.UserTokenResponse;
 import ru.mtuci.siscatharsis.model.Device;
-import ru.mtuci.siscatharsis.model.SessionId;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.model.UserSession;
 import ru.mtuci.siscatharsis.repositories.UserSessionRepository;
