@@ -31,7 +31,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-
         String token = resolveToken(request);
         filterLogic(token);
 
@@ -52,7 +51,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
             UserDetails userDetails = userService.loadUserByUsername(username);
             SecurityContextHolder.getContext().setAuthentication(jwtUtil.getAuthentication(token, userDetails));
-
         } catch (Exception e){
             System.err.println("JWT Filter error: " + e.getMessage());
         }

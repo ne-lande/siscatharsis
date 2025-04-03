@@ -146,7 +146,7 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
 
         return activeLicenses;
     }
-
+    
     public Ticket updateExistentLicense(UUID licenseCode,String login, String macAddress) throws Exception {
         License license = this.findByCode(licenseCode);
 
