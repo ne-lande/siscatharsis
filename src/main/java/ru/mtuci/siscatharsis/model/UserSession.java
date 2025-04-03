@@ -15,25 +15,24 @@ import java.util.UUID;
 @Table(name = "user_sessions")
 public class UserSession {
 
+        public enum SessionStatus {
+                EXPIRED, ACTIVE, BLOCKED
+        }
+
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         @Column(name = "id")
         private Long id;
-        /*
-        @EmbeddedId
-        private SessionId id = new SessionId();
-         */
 
-        @ManyToOne(cascade = CascadeType.ALL)
-        @JoinColumn(name = "user_id")
-        @JsonBackReference
-        private User user;
+        @Column(name = "user_id")
+        private Long userId;
 
-        @ManyToOne(cascade = CascadeType.ALL)
-        @JoinColumn(name = "device_id")
-        @JsonBackReference
-        private Device device;
+        @Column(name = "device_id")
+        private Long deviceId;
 
-        @Column(name = "refresh_token_uuid")
+        @Column(name = "refresh_token")
         private UUID refreshTokenId;
+
+        @Column(name = "status")
+        private SessionStatus status;
 }

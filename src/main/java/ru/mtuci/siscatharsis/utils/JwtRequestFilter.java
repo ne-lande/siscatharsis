@@ -5,11 +5,12 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.oauth2.resource.OAuth2ResourceServerProperties;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import ru.mtuci.siscatharsis.services.JwtService;
+import ru.mtuci.siscatharsis.services.SessionService;
 import ru.mtuci.siscatharsis.services.UserService;
 
 import java.io.IOException;
@@ -17,13 +18,13 @@ import java.io.IOException;
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
     @Autowired
-    public JwtRequestFilter(JwtService jwtService, UserService userService) {
-        this.jwtService = jwtService;
+    public JwtRequestFilter(JwtUtil jwtUtil, UserService userService) {
         this.userService = userService;
+        this.jwtUtil = jwtUtil;
     }
 
     @Override
@@ -41,16 +42,16 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         if (token == null) return;
 
         try {
-            if (!jwtService.validateToken(token) && !jwtService.isAccessToken(token)) return;
+            if (!jwtUtil.validateToken(token) && !jwtUtil.isAccessToken(token)) return;
 
-            String username = jwtService.extractLogin(token);
+            String username = jwtUtil.extractLogin(token);
 
             if (username == null) return;
 
             if (SecurityContextHolder.getContext().getAuthentication() != null) return;
 
-            UserDetails userDetails = userService.findByLogin(username);
-            SecurityContextHolder.getContext().setAuthentication(jwtService.getAuthentication(token, userDetails));
+            UserDetails userDetails = userService.loadUserByUsername(username);
+            SecurityContextHolder.getContext().setAuthentication(jwtUtil.getAuthentication(token, userDetails));
 
         } catch (Exception e){
             System.err.println("JWT Filter error: " + e.getMessage());

@@ -17,9 +17,10 @@ import ru.mtuci.siscatharsis.enums.UserRoleEnum;
 import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.services.DeviceService;
-import ru.mtuci.siscatharsis.services.JwtService;
+import ru.mtuci.siscatharsis.services.SessionService;
 import ru.mtuci.siscatharsis.services.UserService;
 import ru.mtuci.siscatharsis.utils.ApiMessage;
+import ru.mtuci.siscatharsis.utils.JwtUtil;
 
 import java.util.UUID;
 
@@ -29,17 +30,19 @@ public class AuthController {
 
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
+    private final SessionService sessionService;
     private final DeviceService deviceService;
     private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
 
     @Autowired
-    public AuthController(UserService userService, PasswordEncoder passwordEncoder, JwtService jwtService, DeviceService deviceService, AuthenticationManager authenticationManager) {
+    public AuthController(UserService userService, PasswordEncoder passwordEncoder, SessionService sessionService, DeviceService deviceService, AuthenticationManager authenticationManager, JwtUtil jwtUtil, JwtUtil jwtUtil1) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
+        this.sessionService = sessionService;
         this.deviceService = deviceService;
         this.authenticationManager = authenticationManager;
+        this.jwtUtil = jwtUtil1;
     }
 
     @PostMapping("/register")
@@ -77,7 +80,7 @@ public class AuthController {
 
         Device device = deviceService.findByMacAddressAndUser(macAddress, user);
         UserDetails userDetails = userService.loadUserByUsername(login);
-        UserTokenResponse response = jwtService.generateTokenPair(userDetails, device.getId());
+        UserTokenResponse response = sessionService.generateTokenPair(userDetails, user.getId(), device.getId());
 
         return ApiMessage.Success(response);
     }
@@ -95,8 +98,9 @@ public class AuthController {
             return ApiMessage.BadRequest("Invalid credentials");
         }
 
+        Long userId = userService.findByLogin(username).getId();
         UserDetails userDetails = userService.loadUserByUsername(username);
-        UserTokenResponse response = jwtService.generateTokenPair(userDetails, deviceId);
+        UserTokenResponse response = sessionService.generateTokenPair(userDetails, userId, deviceId);
 
         return ApiMessage.Success(response);
     }
@@ -105,11 +109,15 @@ public class AuthController {
     public ResponseEntity<?> refreshToken(@RequestBody TokenRefresh userRequest) {
         String token = userRequest.getToken();
 
-        String login = jwtService.extractLogin(token);
-        Long deviceId = jwtService.extractDeviceId(token);
-        UUID tokenId = jwtService.extractRefreshTokenId(token);
+        String login = jwtUtil.extractLogin(token);
+        Long userId = userService.findByLogin(login).getId();
+        Long deviceId = jwtUtil.extractDeviceId(token);
+        UUID tokenId = jwtUtil.extractRefreshTokenId(token);
 
-        UserTokenResponse response = jwtService.rotateToken(tokenId, login, deviceId);
+        sessionService.rotateToken(tokenId, userId);
+
+        UserDetails userDetails = userService.loadUserByUsername(login);
+        UserTokenResponse response = sessionService.generateTokenPair(userDetails, userId, deviceId);
 
         return ApiMessage.Success(response);
     }
