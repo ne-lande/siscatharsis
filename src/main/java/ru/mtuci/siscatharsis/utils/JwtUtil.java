@@ -24,10 +24,10 @@ public class JwtUtil {
         @Value("${jwt.secret}")
         private String secretKey;
 
-        @Value("${jwt.access.expiration}")
+        @Value("${jwt.expiration.access}")
         private Long accessExpiration;
 
-        @Value("${jwt.refresh.expiration}")
+        @Value("${jwt.expiration.refresh}")
         private Long refreshExpiration;
 
         public String createAccessToken(UserDetails userDetails) {
