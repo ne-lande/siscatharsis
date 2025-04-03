@@ -1,4 +1,4 @@
-package ru.mtuci.siscatharsis.dto.auth;
+package ru.mtuci.siscatharsis.dto.external.auth.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -17,4 +17,6 @@ public class UserLogin {
 
     @NotBlank(message = "Password is empty")
     private String password;
+
+    private Long deviceId;
 }

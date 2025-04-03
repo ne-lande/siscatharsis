@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: "siscatharsis"
+  datasource:
+    url: jdbc:postgresql://database:5432/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+  jpa:
+    hibernate.ddl-auto: update
+    show-sql: true
+    open-in-view: true
+  mvc:
+    log-request-details: true
+
+management.endpoints.web.exposure.include: health
+
+server:
+  contextPath: /
+  port: 12321
+  ssl:
+    enabled: true
+    key-store: classpath:${KEY_STORE_FILE}
+    key-store-type: JKS
+    key-store-password: ${KEY_STORE_PASS}
+    key-alias: ${KEY_ALIAS}
+
+logging:
+  level:
+    org.springframework.web: DEBUG
+    org.springframework.web.servlet.DispatcherServlet: DEBUG
+    org.springframework.web.servlet.HandlerMapping: DEBUG
+    org.springframework.web.servlet.HandlerAdapter: DEBUG
+    org.springframework.security: TRACE
+    org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: TRACE
+
+jwt:
+  secret: "LARGE RANDOM ASS STRING LMAO TRY TO GUESS IT"
+  expiration:
+    access: 3600000
+    refresh: 3600000
+
+admin:
+  username: admin
+  password:

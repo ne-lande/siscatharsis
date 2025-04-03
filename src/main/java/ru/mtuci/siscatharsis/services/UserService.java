@@ -5,14 +5,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+
+import ru.mtuci.siscatharsis.dto.internal.request.UserRequest;
 import ru.mtuci.siscatharsis.model.User;
-import ru.mtuci.siscatharsis.dto.internal.UserRequest;
 import ru.mtuci.siscatharsis.repositories.UserRepository;
 import ru.mtuci.siscatharsis.base.AbstractCRUDService;
-
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService extends AbstractCRUDService<User, UserRepository> implements UserDetailsService {
@@ -47,5 +44,9 @@ public class UserService extends AbstractCRUDService<User, UserRepository> imple
             .orElseThrow(
                 () -> new UsernameNotFoundException("User not found by email")
             );
+    }
+
+    public Boolean existsByLoginAndEmail(String login, String email) {
+        return repository.existsByLoginAndEmail(login, email);
     }
 }

@@ -1,21 +1,21 @@
-package ru.mtuci.siscatharsis.controller;
+package ru.mtuci.siscatharsis.controller.external;
 
 import jakarta.validation.Valid;
 
-import java.util.Objects;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import ru.mtuci.siscatharsis.dto.license.*;
+import ru.mtuci.siscatharsis.dto.external.license.request.LicenseActivationRequest;
+import ru.mtuci.siscatharsis.dto.external.license.request.LicenseInfoRequest;
+import ru.mtuci.siscatharsis.dto.external.license.request.LicenseUpdateRequest;
+import ru.mtuci.siscatharsis.dto.external.license.response.Ticket;
 import ru.mtuci.siscatharsis.model.*;
 import ru.mtuci.siscatharsis.services.*;
 import ru.mtuci.siscatharsis.utils.ApiMessage;
-import ru.mtuci.siscatharsis.utils.LicenseException;
 
 //TODO: 1. Кажется, что есть лишние проверки аутентификации
 
@@ -35,7 +35,7 @@ public class PublicLicenseController {
     }
 
     @PostMapping("/info")
-    public ResponseEntity<?> getLicenseInfo(@Valid @RequestBody LicenseInfoRequest licenseInfoRequest) throws LicenseException, Exception {
+    public ResponseEntity<?> getLicenseInfo(@Valid @RequestBody LicenseInfoRequest licenseInfoRequest) throws Exception {
         User user = userService.findByLogin(SecurityContextHolder.getContext().getAuthentication().getName());
 
         Device device = deviceService.findByMacAddressAndUser(licenseInfoRequest.getMacAddress(), user);
@@ -51,7 +51,7 @@ public class PublicLicenseController {
     }
 
     @PostMapping("/activate")
-    public ResponseEntity<?> activateLicense(@Valid @RequestBody LicenseActivationRequest licenseActivationRequest) throws LicenseException, Exception {
+    public ResponseEntity<?> activateLicense(@Valid @RequestBody LicenseActivationRequest licenseActivationRequest) throws Exception {
         User user = userService.findByLogin(SecurityContextHolder.getContext().getAuthentication().getName());
 
         Device device = deviceService.registerOrUpdateDevice(licenseActivationRequest.getMacAddress(), user);
@@ -65,7 +65,7 @@ public class PublicLicenseController {
     }
 
     @PostMapping("/update")
-    public ResponseEntity<?> updateLicense(@Valid @RequestBody LicenseUpdateRequest licenseUpdateRequest) throws LicenseException, Exception {
+    public ResponseEntity<?> updateLicense(@Valid @RequestBody LicenseUpdateRequest licenseUpdateRequest) throws Exception {
         Ticket ticket = licenseService.updateExistentLicense(
                 licenseUpdateRequest.getLicenseCode(),
                 licenseUpdateRequest.getLogin(),

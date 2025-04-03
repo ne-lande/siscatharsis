@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import ru.mtuci.siscatharsis.dto.internal.LicenseTypeRequest;
+import ru.mtuci.siscatharsis.dto.internal.request.LicenseTypeRequest;
 import ru.mtuci.siscatharsis.model.LicenseType;
 import ru.mtuci.siscatharsis.services.LicenseTypeService;
 import ru.mtuci.siscatharsis.repositories.LicenseTypeRepository;

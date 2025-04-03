@@ -1,4 +1,4 @@
-package ru.mtuci.siscatharsis.dto.license;
+package ru.mtuci.siscatharsis.dto.external.license.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

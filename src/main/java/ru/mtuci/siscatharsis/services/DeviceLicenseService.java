@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import ru.mtuci.siscatharsis.model.DeviceLicense;
 import ru.mtuci.siscatharsis.model.License;
 import ru.mtuci.siscatharsis.model.Device;
-import ru.mtuci.siscatharsis.dto.internal.DeviceLicenseRequest;
 import ru.mtuci.siscatharsis.repositories.DeviceLicenseRepository;
 import ru.mtuci.siscatharsis.base.AbstractCRUDService;
 import ru.mtuci.siscatharsis.utils.EntityNotFoundException;

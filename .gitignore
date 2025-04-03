@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### NO GITLEAKS BRO I PROMISE
+/src/main/resources/server.jks
+/cert

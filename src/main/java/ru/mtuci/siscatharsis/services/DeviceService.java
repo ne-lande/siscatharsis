@@ -2,16 +2,15 @@ package ru.mtuci.siscatharsis.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.mtuci.siscatharsis.dto.license.LicenseActivationRequest;
-import ru.mtuci.siscatharsis.dto.internal.DeviceRequest;
+
+import ru.mtuci.siscatharsis.dto.internal.request.DeviceRequest;
 import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.repositories.DeviceRepository;
-import ru.mtuci.siscatharsis.repositories.UserRepository;
 import ru.mtuci.siscatharsis.base.AbstractCRUDService;
 import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
+
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class DeviceService extends AbstractCRUDService<Device, DeviceRepository> {

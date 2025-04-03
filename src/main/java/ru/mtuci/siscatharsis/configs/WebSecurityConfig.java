@@ -20,10 +20,7 @@ import ru.mtuci.siscatharsis.utils.JwtRequestFilter;
 public class WebSecurityConfig {
 
     private static final String[] PUBLIC_ENDPOINTS = {
-        "/auth/**",
-        "/license-type/**",
-        "/product/**",
-        "/actuator/health",
+        "/auth/**", "/license-type/**", "/product/**", "/actuator/**"
     };
     private static final int BCRYPT_STRENGTH = 12;
     private final JwtRequestFilter jwtRequestFilter;

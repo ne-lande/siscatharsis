@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import ru.mtuci.siscatharsis.dto.internal.DeviceRequest;
+import ru.mtuci.siscatharsis.dto.internal.request.DeviceRequest;
 import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.services.DeviceService;
 import ru.mtuci.siscatharsis.repositories.DeviceRepository;

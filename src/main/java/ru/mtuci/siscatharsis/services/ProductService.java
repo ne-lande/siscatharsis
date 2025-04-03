@@ -2,13 +2,11 @@ package ru.mtuci.siscatharsis.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.mtuci.siscatharsis.dto.internal.ProductRequest;
+
+import ru.mtuci.siscatharsis.dto.internal.request.ProductRequest;
 import ru.mtuci.siscatharsis.model.Product;
 import ru.mtuci.siscatharsis.repositories.ProductRepository;
 import ru.mtuci.siscatharsis.base.AbstractCRUDService;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ProductService extends AbstractCRUDService<Product, ProductRepository> {

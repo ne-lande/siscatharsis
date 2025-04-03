@@ -1,29 +1,23 @@
 package ru.mtuci.siscatharsis.services;
 
-import java.nio.charset.StandardCharsets;
-import java.security.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import java.util.ArrayList;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import ru.mtuci.siscatharsis.base.AbstractCRUDService;
+import ru.mtuci.siscatharsis.dto.external.license.response.Ticket;
 import ru.mtuci.siscatharsis.dto.internal.license.request.LicenseUpdateRequest;
 import ru.mtuci.siscatharsis.dto.internal.license.request.LicenseCreateRequest;
-import ru.mtuci.siscatharsis.dto.license.Ticket;
 import ru.mtuci.siscatharsis.model.*;
 import ru.mtuci.siscatharsis.repositories.LicenseRepository;
-import ru.mtuci.siscatharsis.services.*;
 import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 import ru.mtuci.siscatharsis.utils.LicenseException;
 import ru.mtuci.siscatharsis.utils.CryptoUtil;
 
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import java.util.ArrayList;
 
 // Я переместил тудушки туда где они исправлены
 
@@ -118,7 +112,7 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
     }
 
     //TODO: 5. activateLicense - пересмотреть проверку. Пользователь должен иметь возможность повторно активировать лицензию на другом устройстве
-    public Ticket activateLicense(UUID activationCode, Device device, User user) throws IllegalArgumentException, LicenseException, Exception {
+    public Ticket activateLicense(UUID activationCode, Device device, User user) throws Exception {
         License license = this.findByCode(activationCode);
 
         //TODO 5.
@@ -152,8 +146,8 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
 
         return activeLicenses;
     }
-
-    public Ticket updateExistentLicense(UUID licenseCode,String login, String macAddress) throws IllegalArgumentException, LicenseException, Exception {
+    
+    public Ticket updateExistentLicense(UUID licenseCode,String login, String macAddress) throws Exception {
         License license = this.findByCode(licenseCode);
 
         if (license.getIsBlocked()) {
