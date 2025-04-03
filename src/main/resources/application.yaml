@@ -2,10 +2,11 @@ spring:
   application:
     name: "siscatharsis"
   datasource:
-    url: jdbc:postgresql://database:5432/${POSTGRES_DB}
+    url: jdbc:postgresql://127.0.0.1:5432/${POSTGRES_DB}
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
   jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate.ddl-auto: update
     show-sql: true
     open-in-view: true
