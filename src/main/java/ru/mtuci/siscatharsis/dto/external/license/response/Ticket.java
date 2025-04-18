@@ -21,7 +21,7 @@ public class Ticket {
     private Long deviceId;
     private Boolean isBlocked;
 
-    private SignatureInstance signature;
+    private String digitalSignature;
 
     @Override
     public String toString() {
