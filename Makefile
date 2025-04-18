@@ -18,15 +18,17 @@ gen-cert:
 	@mkdir "cert/"
 	@cd "cert/"
 
-	@keytool -genkeypair -alias 'rootCA' -keyalg 'RSA' -keysize 2048 -validity 3650 \
+	@echo $(KEY_STORE_FILE) $(KEY_STORE_PASS) $(KEY_PASS) $(KEY_ALIAS)
+
+	@keytool -genkeypair -alias 'rootCA' -keyalg 'DSA' -keysize 2048 -validity 3650 \
   		-keystore $(KEY_STORE_FILE) -storepass $(KEY_STORE_PASS) -keypass $(KEY_PASS) \
-  		-dname 'CN=RootCA, OU=Security, O=Mtuci, L=Moscow, C=RU' \
+  		-dname "CN=RootCA, OU=Security, O=Mtuci, L=Moscow, C=RU" \
   		-ext 'bc:c'
 
 	@keytool -exportcert -alias 'rootCA' -keystore $(KEY_STORE_FILE) -storepass $(KEY_STORE_PASS) \
 		-file 'rootCA.crt' -rfc
 
-	@keytool -genkeypair -alias 'intermediateCA' -keyalg RSA -keysize 2048 -validity 1825 \
+	@keytool -genkeypair -alias 'intermediateCA' -keyalg DSA -keysize 2048 -validity 1825 \
     	-keystore $(KEY_STORE_FILE) -storepass $(KEY_STORE_PASS) -keypass $(KEY_PASS) \
     	-dname "CN=IntermediateCA, OU=Security, O=Mtuci, L=Moscow, ST=Moscow, C=RU" \
     	-ext 'bc:c'
@@ -41,7 +43,7 @@ gen-cert:
 	@keytool -importcert -alias 'intermediateCA' -keystore $(KEY_STORE_FILE) \
     	-storepass $(KEY_STORE_PASS) -file 'intermediateCA.crt'
 
-	@keytool -genkeypair -alias $(KEY_ALIAS) -keyalg 'RSA' -keysize 2048 -validity 365 \
+	@keytool -genkeypair -alias $(KEY_ALIAS) -keyalg 'DSA' -keysize 2048 -validity 365 \
       	-keystore $(KEY_STORE_FILE) -storepass $(KEY_STORE_PASS) -keypass $(KEY_PASS) \
       	-dname "CN=server.example.com, OU=IT, O=Mtuci, L=Moscow, ST=Moscow, C=RU"
 
