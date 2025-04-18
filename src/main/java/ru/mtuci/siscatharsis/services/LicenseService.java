@@ -12,7 +12,6 @@ import ru.mtuci.siscatharsis.model.*;
 import ru.mtuci.siscatharsis.repositories.LicenseRepository;
 import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 import ru.mtuci.siscatharsis.utils.LicenseException;
-import ru.mtuci.siscatharsis.utils.CryptoUtil;
 
 import java.util.Date;
 import java.util.List;
@@ -34,13 +33,13 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
     private final LicenseHistoryService licenseHistoryService;
     private final DeviceService deviceService;
     private final DeviceLicenseService deviceLicenseService;
-    private final PasswordEncoder passwordEncoder;
+    private final CryptoService cryptoService;
 
     @Autowired
     public LicenseService(LicenseRepository repository, ProductService productService, UserService userService,
                           LicenseTypeService licenseTypeService, LicenseHistoryService licenseHistoryService,
                           DeviceLicenseService deviceLicenseService, DeviceService deviceService,
-                          PasswordEncoder passwordEncoder) {
+                          CryptoService cryptoService) {
         super(repository, License.class);
         this.productService = productService;
         this.userService = userService;
@@ -48,7 +47,7 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
         this.licenseTypeService = licenseTypeService;
         this.licenseHistoryService = licenseHistoryService;
         this.deviceLicenseService = deviceLicenseService;
-        this.passwordEncoder = passwordEncoder;
+        this.cryptoService = cryptoService;
     }
 
     //TODO: 6. Дублируется код в create и update
@@ -193,7 +192,8 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
         ticket.setDeviceId(device.getId());
         ticket.setIsBlocked(license.getIsBlocked());
 
-        ticket.setSignature(CryptoUtil.sign(ticket.toString()));
+        String digitalSignature = cryptoService.signWithCurrent(ticket.toString());
+        ticket.setDigitalSignature(digitalSignature);
 
         return ticket;
     }
