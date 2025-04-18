@@ -1,24 +1,29 @@
-## 2dev
+## Preparing development environment
+
+### Nix-way
 
 ```bash
-nix-shell shell.nix --run <shell>
+nix develop 
 ```
 
-## 2build
+### Win-way
+
+Download and install:
+ - openjdk-21
+ - preferable IDE
+ - postgres
+or
+ - docker...
+
+## Launching
+
+### Docker-way
+
+All needed tasks located in makefile
 ```bash
-mvn package
+make start-docker
 ```
 
-## 2run
-1) build
-2) replace target file name in docker-compose.yml
-3)
-```bash
-docker compose up --build
-```
+### Win-way
 
-## fun (prefired way)
-
-```bash
-docker compose up --build
-```
+sorry, you're on your own

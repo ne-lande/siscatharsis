@@ -2,7 +2,7 @@ spring:
   application:
     name: "siscatharsis"
   datasource:
-    url: jdbc:postgresql://127.0.0.1:5432/${POSTGRES_DB}
+    url: jdbc:postgresql://${POSTGRES_URL}:5432/${POSTGRES_DB}
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
   jpa:
