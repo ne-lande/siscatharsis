@@ -18,5 +18,6 @@ public class UserLogin {
     @NotBlank(message = "Password is empty")
     private String password;
 
-    private Long deviceId;
+    @NotBlank(message = "Mac is empty")
+    private String macAddress;
 }

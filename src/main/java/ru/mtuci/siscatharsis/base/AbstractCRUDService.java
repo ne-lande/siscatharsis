@@ -30,7 +30,8 @@ public abstract class AbstractCRUDService<Model, Repository extends JpaRepositor
         repository.deleteById(id);
     }
 
-    public void save(Model entity) {
+    public Model save(Model entity) {
         repository.save(entity);
+        return entity;
     }
 }

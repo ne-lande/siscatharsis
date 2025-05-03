@@ -19,12 +19,12 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/admin/signature")
-public class SignatureController {
+public class AdminSignatureController {
         private final SignatureService signatureService;
         private final UserService userService;
 
         @Autowired
-        SignatureController(SignatureService signatureService, UserService userService) {
+        AdminSignatureController(SignatureService signatureService, UserService userService) {
                 this.signatureService = signatureService;
                 this.userService = userService;
         }

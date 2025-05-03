@@ -50,16 +50,13 @@ public class AuthController {
         String login = userRequest.getLogin();
         String email = userRequest.getEmail();
 
-        String deviceName = userRequest.getDeviceName();
-        String macAddress = userRequest.getMacAddress();
-
         if (userService.existsByLoginAndEmail(login, email)) {
             return ApiMessage.BadRequest("User already exists");
         }
 
         String passwordHash = passwordEncoder.encode(userRequest.getPassword());
 
-        userService.save(
+        User user = userService.save(
                 User.builder()
                         .login(login)
                         .email(email)
@@ -69,16 +66,14 @@ public class AuthController {
                         .build()
         );
 
-        User user = userService.findByLogin(login);
-        deviceService.save(
+        String macAddress = userRequest.getMacAddress();
+        Device device = deviceService.save(
                 Device.builder()
                         .user(user)
-                        .name(deviceName)
                         .macAddress(macAddress)
                         .build()
         );
 
-        Device device = deviceService.findByMacAddressAndUser(macAddress, user);
         UserDetails userDetails = userService.loadUserByUsername(login);
         UserTokenResponse response = sessionService.generateTokenPair(userDetails, user.getId(), device.getId());
 
@@ -89,18 +84,19 @@ public class AuthController {
     public ResponseEntity<?> userLogin(@Valid @RequestBody UserLogin userRequest) {
         String username = userRequest.getLogin();
         String password = userRequest.getPassword();
-        Long deviceId = userRequest.getDeviceId();
 
+        // check for creds
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-
-        // early return my beloved
         if (!authentication.isAuthenticated()) {
             return ApiMessage.BadRequest("Invalid credentials");
         }
 
-        Long userId = userService.findByLogin(username).getId();
-        UserDetails userDetails = userService.loadUserByUsername(username);
-        UserTokenResponse response = sessionService.generateTokenPair(userDetails, userId, deviceId);
+        String macAddress = userRequest.getMacAddress();
+        User user = (User) authentication.getPrincipal();
+        Device device = deviceService.requireUserDevice(macAddress, user);
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        UserTokenResponse response = sessionService.generateTokenPair(userDetails, user.getId(), device.getId());
 
         return ApiMessage.Success(response);
     }

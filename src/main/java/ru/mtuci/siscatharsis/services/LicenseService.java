@@ -9,6 +9,7 @@ import ru.mtuci.siscatharsis.dto.external.license.response.Ticket;
 import ru.mtuci.siscatharsis.dto.internal.license.request.LicenseUpdateRequest;
 import ru.mtuci.siscatharsis.dto.internal.license.request.LicenseCreateRequest;
 import ru.mtuci.siscatharsis.model.*;
+import ru.mtuci.siscatharsis.repositories.LicenseHistoryRepository;
 import ru.mtuci.siscatharsis.repositories.LicenseRepository;
 import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 import ru.mtuci.siscatharsis.utils.LicenseException;
@@ -30,22 +31,22 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
     private final ProductService productService;
     private final UserService userService;
     private final LicenseTypeService licenseTypeService;
-    private final LicenseHistoryService licenseHistoryService;
+    private final LicenseHistoryRepository licenseHistoryRepository;
     private final DeviceService deviceService;
     private final DeviceLicenseService deviceLicenseService;
     private final CryptoService cryptoService;
 
     @Autowired
     public LicenseService(LicenseRepository repository, ProductService productService, UserService userService,
-                          LicenseTypeService licenseTypeService, LicenseHistoryService licenseHistoryService,
+                          LicenseTypeService licenseTypeService, LicenseHistoryRepository licenseHistoryRepository,
                           DeviceLicenseService deviceLicenseService, DeviceService deviceService,
                           CryptoService cryptoService) {
         super(repository, License.class);
+        this.licenseHistoryRepository = licenseHistoryRepository;
         this.productService = productService;
         this.userService = userService;
         this.deviceService = deviceService;
         this.licenseTypeService = licenseTypeService;
-        this.licenseHistoryService = licenseHistoryService;
         this.deviceLicenseService = deviceLicenseService;
         this.cryptoService = cryptoService;
     }
@@ -69,7 +70,7 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
 
         repository.save(license);
 
-        licenseHistoryService.save(LicenseHistory.create(license));
+        licenseHistoryRepository.save(LicenseHistory.create(license));
 
         return license;
     }
@@ -95,7 +96,7 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
         license.setDuration(licenseRequest.getDuration());
         license.setDescription(licenseRequest.getDescription());
 
-        licenseHistoryService.save(LicenseHistory.update(license));
+        licenseHistoryRepository.save(LicenseHistory.update(license));
 
         return repository.save(license);
     }
@@ -123,7 +124,7 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
 
         deviceLicenseService.createDeviceLicense(license, device);
 
-        licenseHistoryService.save(LicenseHistory.activate(license));
+        licenseHistoryRepository.save(LicenseHistory.activate(license));
 
         return generateTicket(license, device);
     }
@@ -146,7 +147,7 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
         return activeLicenses;
     }
     
-    public Ticket updateExistentLicense(UUID licenseCode,String login, String macAddress) throws Exception {
+    public Ticket updateExistentLicense(UUID licenseCode, User user, Device device) throws Exception {
         License license = this.findByCode(licenseCode);
 
         if (license.getIsBlocked()) {
@@ -160,9 +161,10 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
         license.setEndingDate(
                 new Date(license.getEndingDate().getTime() + license.getDuration())
         );
+
         repository.save(license);
 
-        licenseHistoryService.save(
+        licenseHistoryRepository.save(
                 new LicenseHistory(
                         license,
                         license.getOwner(),
@@ -172,11 +174,9 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
                 )
         );
 
-        User user = userService.findByLogin(login);
-
         return generateTicket(
                 license,
-                deviceService.findByMacAddressAndUser(macAddress, user)
+                device
         );
     }
 

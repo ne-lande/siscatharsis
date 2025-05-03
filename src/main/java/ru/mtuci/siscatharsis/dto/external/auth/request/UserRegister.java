@@ -23,6 +23,6 @@ public class UserRegister {
     @Email(message = "email should be valid")
     private String email;
 
-    private String deviceName;
+    @NotBlank(message = "mac cannot be empty")
     private String macAddress;
 }
