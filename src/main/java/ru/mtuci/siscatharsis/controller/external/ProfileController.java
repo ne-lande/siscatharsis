@@ -4,10 +4,11 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import ru.mtuci.siscatharsis.dto.external.device.request.DeviceCreateRequest;
+import ru.mtuci.siscatharsis.dto.external.profile.request.ChangePasswordRequest;
 import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.utils.ApiMessage;
@@ -22,11 +23,13 @@ public class ProfileController {
 
     private final UserService userService;
     private final DeviceService deviceService;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public ProfileController(UserService userService, DeviceService deviceService) {
+    public ProfileController(UserService userService, DeviceService deviceService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.deviceService = deviceService;
+        this.passwordEncoder = passwordEncoder;
     }
     @GetMapping("/me")
     public ResponseEntity<?> myProfile(Authentication authentication) {
@@ -36,8 +39,14 @@ public class ProfileController {
     }
 
     @PostMapping("/change-password")
-    public void changePassword(Authentication authentication) {
+    public void changePassword(Authentication authentication, @RequestBody ChangePasswordRequest changePasswordRequest) {
+        User user = (User) authentication.getPrincipal();
+        String newPassword = changePasswordRequest.getPassword();
+        String newPasswordHash = passwordEncoder.encode(newPassword);
+        user.setPasswordHash(newPasswordHash);
 
+        // тут еще надо все сессии просрочить
+        userService.save(user);
     }
 
     @GetMapping("/devices")
@@ -64,30 +73,46 @@ public class ProfileController {
     public ResponseEntity<?> changeMyDevice(Authentication authentication, @PathVariable Long id, @Valid @RequestBody DeviceCreateRequest deviceRequest) {
         User user = (User) authentication.getPrincipal();
 
-        if (deviceService.findById(id).getUser().getId() == user.getId()) {
-            return ApiMessage.Success(deviceService.findById(id));
+        Device device = deviceService.findById(id);
+        if (!device.getUser().equals(user)) {
+            return ApiMessage.BadRequest("Not yours");
         }
 
-        //TODO: implement
+        device.setName(deviceRequest.getName());
+        device.setMacAddress(deviceRequest.getMacAddress());
+
+        deviceService.save(device);
 
         return ApiMessage.Secret("ggg");
     }
 
     @DeleteMapping("/devices/{id}")
-    public ResponseEntity<?> deleteMyDevice() {
-        return ApiMessage.Success(null);
+    public ResponseEntity<?> deleteMyDevice(Authentication authentication, @PathVariable Long id) {
+        User user = (User) authentication.getPrincipal();
+
+        List<Device> userDevices = deviceService.getByUserId(user.getId());
+
+        if (userDevices.size() == 1) {
+            return ApiMessage.BadRequest("You cant delete your last device");
+        }
+
+        Device device = userDevices.stream().filter(d -> d.getId().equals(id)).findFirst().orElse(null);
+        deviceService.delete(device);
+
+        return ApiMessage.Success("success");
     }
 
     @PostMapping("/devices/add")
-    public ResponseEntity<?> create(Authentication authentication, @Valid @RequestBody DeviceCreateRequest deviceRequest) {
+    public ResponseEntity<?> createDevice(Authentication authentication, @Valid @RequestBody DeviceCreateRequest deviceRequest) {
         User user = (User) authentication.getPrincipal();
 
-        if (deviceService.findByMacAddressAndUser(deviceRequest.getMacAddress(), user) != null) {
-            return ApiMessage.BadRequest("such device already exists");
+        String macAddress = deviceRequest.getMacAddress();
+
+        if (deviceService.existsUserDevice(macAddress, user)) {
+            return ApiMessage.BadRequest("Such device already exists");
         }
 
         String name = deviceRequest.getName();
-        String macAddress = deviceRequest.getMacAddress();
 
         Device device = Device.builder()
                 .user(user)

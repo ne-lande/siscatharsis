@@ -19,14 +19,6 @@ public class UserService extends AbstractCRUDService<User, UserRepository> imple
         super(repository, User.class);
     }
 
-    public User create(UserRequest userRequest) {
-        return null;
-    }
-
-    public User update(Long id, UserRequest userRequest) {
-        return null;
-    }
-
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
         return this.findByLogin(login);

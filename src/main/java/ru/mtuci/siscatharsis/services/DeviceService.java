@@ -3,11 +3,9 @@ package ru.mtuci.siscatharsis.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import ru.mtuci.siscatharsis.dto.internal.request.DeviceRequest;
 import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.repositories.DeviceRepository;
-import ru.mtuci.siscatharsis.base.AbstractCRUDService;
 import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 
 import java.util.List;
@@ -21,11 +19,16 @@ public class DeviceService {
         this.deviceRepository = deviceRepository;
     }
 
-    public Device findByMacAddressAndUser(String macAddress, User user) {
+    // Предполагается что девайс ТОЧНО будет найден, любое другое поведение -> хуйня
+    public Device requireUserDevice(String macAddress, User user) {
         return deviceRepository.findByMacAddressAndUser(macAddress, user)
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Device not found by macaddress and user"
-        ));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Device not found"
+                ));
+    }
+
+    public Boolean existsUserDevice(String macAddress, User user) {
+        return deviceRepository.findByMacAddressAndUser(macAddress, user).isPresent();
     }
 
     public Device findById(Long deviceId) {
@@ -41,14 +44,13 @@ public class DeviceService {
 
     // девайс к одному юзеру
     public Device registerOrUpdateDevice(String macAddress, User user) {
-        Device device;
-        try {
-            device = this.findByMacAddressAndUser(macAddress, user);
-        } catch (EntityNotFoundException e) {
-            device = new Device();
-            device.setMacAddress(macAddress);
-            device.setUser(user);
-        }
+        Device device = deviceRepository.findByMacAddressAndUser(macAddress, user)
+                .orElse(
+                        Device.builder()
+                                .user(user)
+                                .macAddress(macAddress)
+                                .build()
+                );
 
         return deviceRepository.save(device);
     }
@@ -62,5 +64,4 @@ public class DeviceService {
     public void delete(Device device) {
         deviceRepository.delete(device);
     }
-
 }

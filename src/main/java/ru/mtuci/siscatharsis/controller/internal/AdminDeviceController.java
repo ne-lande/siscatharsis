@@ -32,7 +32,7 @@ public class AdminDeviceController {
 
         String macAddress = deviceRequest.getMacAddress();
 
-        if (deviceService.findByMacAddressAndUser(macAddress, user) != null) {
+        if (deviceService.existsUserDevice(macAddress, user)) {
             return ApiMessage.BadRequest("Already Exists");
         }
 

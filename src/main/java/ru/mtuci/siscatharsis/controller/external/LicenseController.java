@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import ru.mtuci.siscatharsis.dto.external.license.request.LicenseActivationRequest;
 import ru.mtuci.siscatharsis.dto.external.license.request.LicenseInfoRequest;
@@ -20,6 +19,7 @@ import ru.mtuci.siscatharsis.utils.ApiMessage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/license")
@@ -49,7 +49,7 @@ public class LicenseController {
     public ResponseEntity<?> getLicenseInfo(Authentication authentication, @Valid @RequestBody LicenseInfoRequest licenseInfoRequest) throws Exception {
         User user = (User) authentication.getPrincipal();
 
-        Device device = deviceService.findByMacAddressAndUser(licenseInfoRequest.getMacAddress(), user);
+        Device device = deviceService.requireUserDevice(licenseInfoRequest.getMacAddress(), user);
 
         List<License> activeLicenses = licenseService.getActiveLicensesForDevice(device);
         List<Ticket> tickets = new ArrayList<>();
@@ -63,7 +63,11 @@ public class LicenseController {
 
     @PostMapping("/activate")
     public ResponseEntity<?> activateLicense(Authentication authentication, @Valid @RequestBody LicenseActivationRequest licenseActivationRequest) throws Exception {
+        UUID activationCode = licenseActivationRequest.getActivationCode();
+
         User user = (User) authentication.getPrincipal();
+
+        String macAddress = licenseActivationRequest.getMacAddress();
 
         Device device = deviceService.registerOrUpdateDevice(licenseActivationRequest.getMacAddress(), user);
 
@@ -76,12 +80,15 @@ public class LicenseController {
     }
 
     @PostMapping("/update")
-    public ResponseEntity<?> updateLicense(@Valid @RequestBody LicenseUpdateRequest licenseUpdateRequest) throws Exception {
-        Ticket ticket = licenseService.updateExistentLicense(
-                licenseUpdateRequest.getLicenseCode(),
-                licenseUpdateRequest.getLogin(),
-                licenseUpdateRequest.getMacAddress()
-        );
+    public ResponseEntity<?> updateLicense(Authentication authentication, @Valid @RequestBody LicenseUpdateRequest licenseUpdateRequest) throws Exception {
+        User user = (User) authentication.getPrincipal();
+        String macAddress = licenseUpdateRequest.getMacAddress();
+
+        Device device = deviceService.requireUserDevice(macAddress, user);
+
+        UUID licenseCode = licenseUpdateRequest.getLicenseCode();
+
+        Ticket ticket = licenseService.updateExistentLicense(licenseCode, user, device);
 
         return ApiMessage.Success(ticket);
     }

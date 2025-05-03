@@ -147,7 +147,7 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
         return activeLicenses;
     }
     
-    public Ticket updateExistentLicense(UUID licenseCode,String login, String macAddress) throws Exception {
+    public Ticket updateExistentLicense(UUID licenseCode, User user, Device device) throws Exception {
         License license = this.findByCode(licenseCode);
 
         if (license.getIsBlocked()) {
@@ -161,6 +161,7 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
         license.setEndingDate(
                 new Date(license.getEndingDate().getTime() + license.getDuration())
         );
+
         repository.save(license);
 
         licenseHistoryRepository.save(
@@ -173,11 +174,9 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
                 )
         );
 
-        User user = userService.findByLogin(login);
-
         return generateTicket(
                 license,
-                deviceService.findByMacAddressAndUser(macAddress, user)
+                device
         );
     }
 

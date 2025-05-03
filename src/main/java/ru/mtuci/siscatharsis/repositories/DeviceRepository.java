@@ -11,7 +11,6 @@ import java.util.List;
 @Repository
 public interface DeviceRepository extends JpaRepository<Device, Long> {
     Optional<Device> findByMacAddressAndUser(String macAddress, User user);
-    Optional<Device> findByMacAddress(String macAddress);
-    Optional<Device> findByUser(User user);
+    Optional<Device> findByIdAndUser(Long id, User user);
     List<Device> getByUserId(Long userId);
 }
