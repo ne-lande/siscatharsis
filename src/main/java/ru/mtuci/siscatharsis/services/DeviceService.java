@@ -13,52 +13,30 @@ import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 import java.util.List;
 
 @Service
-public class DeviceService extends AbstractCRUDService<Device, DeviceRepository> {
-
-    private final UserService userService;
+public class DeviceService {
+    private final DeviceRepository deviceRepository;
 
     @Autowired
-    public DeviceService(DeviceRepository repository, UserService userService) {
-        super(repository, Device.class);
-        this.userService = userService;
-    }
-
-    public Device create(DeviceRequest deviceRequest) {
-        User user = userService.findById(deviceRequest.getUserId());
-
-        Device device = new Device();
-        device.setName(deviceRequest.getDeviceName());
-        device.setMacAddress(deviceRequest.getMacAddress());
-        device.setUser(user);
-        return repository.save(device);
-    }
-
-    public Device update(Long id, DeviceRequest deviceRequest) {
-        Device device = this.findById(id);
-        User user = userService.findById(deviceRequest.getUserId());
-
-        device.setName(deviceRequest.getDeviceName());
-        device.setMacAddress(deviceRequest.getMacAddress());
-        device.setUser(user);
-        return repository.save(device);
+    public DeviceService(DeviceRepository deviceRepository, UserService userService) {
+        this.deviceRepository = deviceRepository;
     }
 
     public Device findByMacAddressAndUser(String macAddress, User user) {
-        return repository.findByMacAddressAndUser(macAddress, user)
+        return deviceRepository.findByMacAddressAndUser(macAddress, user)
             .orElseThrow(() -> new EntityNotFoundException(
                 "Device not found by macaddress and user"
         ));
     }
 
-    public Device findByMacAddress(String macAddress) {
-        return repository.findByMacAddress(macAddress)
-            .orElseThrow(() -> new EntityNotFoundException(
-                "Device not found by macaddress"
-        ));
+    public Device findById(Long deviceId) {
+        return deviceRepository.findById(deviceId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Device not found by id"
+                ));
     }
 
     public List<Device> getByUserId(Long userId) {
-        return repository.getByUserId(userId);
+        return deviceRepository.getByUserId(userId);
     }
 
     // девайс к одному юзеру
@@ -72,6 +50,17 @@ public class DeviceService extends AbstractCRUDService<Device, DeviceRepository>
             device.setUser(user);
         }
 
-        return repository.save(device);
+        return deviceRepository.save(device);
     }
+
+    // CRUD
+
+    public Device save(Device device) {
+        return deviceRepository.save(device);
+    }
+
+    public void delete(Device device) {
+        deviceRepository.delete(device);
+    }
+
 }

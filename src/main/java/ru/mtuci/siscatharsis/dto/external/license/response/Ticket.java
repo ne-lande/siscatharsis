@@ -6,8 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import ru.mtuci.siscatharsis.utils.SignatureInstance;
-
 @Getter
 @Setter
 @AllArgsConstructor

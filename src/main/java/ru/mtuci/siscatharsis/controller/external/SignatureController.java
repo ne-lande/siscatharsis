@@ -15,12 +15,12 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/signature")
-public class PublicSignatureController {
+public class SignatureController {
         private final SignatureService signatureService;
         private final UserService userService;
 
         @Autowired
-        PublicSignatureController(SignatureService signatureService, UserService userService) {
+        SignatureController(SignatureService signatureService, UserService userService) {
                 this.signatureService = signatureService;
                 this.userService = userService;
         }
