@@ -1,7 +1,7 @@
 package ru.mtuci.siscatharsis.controller.external;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,7 +13,6 @@ import ru.mtuci.siscatharsis.dto.external.auth.request.TokenRefresh;
 import ru.mtuci.siscatharsis.dto.external.auth.request.UserLogin;
 import ru.mtuci.siscatharsis.dto.external.auth.request.UserRegister;
 import ru.mtuci.siscatharsis.dto.external.auth.response.UserTokenResponse;
-import ru.mtuci.siscatharsis.enums.UserRoleEnum;
 import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.services.DeviceService;
@@ -26,6 +25,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
     private final UserService userService;
@@ -34,16 +34,6 @@ public class AuthController {
     private final DeviceService deviceService;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
-
-    @Autowired
-    public AuthController(UserService userService, PasswordEncoder passwordEncoder, SessionService sessionService, DeviceService deviceService, AuthenticationManager authenticationManager, JwtUtil jwtUtil, JwtUtil jwtUtil1) {
-        this.userService = userService;
-        this.passwordEncoder = passwordEncoder;
-        this.sessionService = sessionService;
-        this.deviceService = deviceService;
-        this.authenticationManager = authenticationManager;
-        this.jwtUtil = jwtUtil1;
-    }
 
     @PostMapping("/register")
     public ResponseEntity<?> userRegistration(@Valid @RequestBody UserRegister userRequest) {
@@ -56,42 +46,40 @@ public class AuthController {
 
         String passwordHash = passwordEncoder.encode(userRequest.getPassword());
 
-        User user = userService.save(
-                User.builder()
-                        .login(login)
-                        .email(email)
-                        .passwordHash(passwordHash)
-                        .role(UserRoleEnum.ROLE_USER)
-                        .licenses(null)
-                        .build()
-        );
+        User user = User.builder()
+                .login(login)
+                .email(email)
+                .passwordHash(passwordHash)
+                .role(User.Role.ROLE_USER)
+                .licenses(null)
+                .build();
+
+        userService.create(user);
 
         String macAddress = userRequest.getMacAddress();
-        Device device = deviceService.save(
-                Device.builder()
-                        .user(user)
-                        .macAddress(macAddress)
-                        .build()
-        );
+        Device device = Device.builder()
+                .user(user)
+                .macAddress(macAddress)
+                .build();
 
-        UserDetails userDetails = userService.loadUserByUsername(login);
-        UserTokenResponse response = sessionService.generateTokenPair(userDetails, user.getId(), device.getId());
+        deviceService.create(device, user);
+
+        UserTokenResponse response = sessionService.generateTokenPair((UserDetails) user, user.getId(), device.getId());
 
         return ApiMessage.Success(response);
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> userLogin(@Valid @RequestBody UserLogin userRequest) {
-        String username = userRequest.getLogin();
-        String password = userRequest.getPassword();
+        String username = userRequest.login();
+        String password = userRequest.password();
 
-        // check for creds
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
         if (!authentication.isAuthenticated()) {
             return ApiMessage.BadRequest("Invalid credentials");
         }
 
-        String macAddress = userRequest.getMacAddress();
+        String macAddress = userRequest.macAddress();
         User user = (User) authentication.getPrincipal();
         Device device = deviceService.requireUserDevice(macAddress, user);
 
@@ -106,7 +94,7 @@ public class AuthController {
         String token = userRequest.getToken();
 
         String login = jwtUtil.extractLogin(token);
-        Long userId = userService.findByLogin(login).getId();
+        Long userId = userService.requireByLogin(login).getId();
         Long deviceId = jwtUtil.extractDeviceId(token);
         UUID tokenId = jwtUtil.extractRefreshTokenId(token);
 

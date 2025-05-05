@@ -13,9 +13,9 @@ import java.time.Instant;
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Table(name = "cryptos")
 public class Crypto {
         @Id

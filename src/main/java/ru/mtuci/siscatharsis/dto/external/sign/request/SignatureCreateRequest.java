@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+// we use Integer cuz they can be null
 public class SignatureCreateRequest {
         String threatName;
         Byte firstBytes;

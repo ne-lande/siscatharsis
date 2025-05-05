@@ -1,35 +1,50 @@
 package ru.mtuci.siscatharsis.services;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import ru.mtuci.siscatharsis.dto.internal.request.ProductRequest;
 import ru.mtuci.siscatharsis.model.Product;
+import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.repositories.ProductRepository;
-import ru.mtuci.siscatharsis.base.AbstractCRUDService;
 
 @Service
-public class ProductService extends AbstractCRUDService<Product, ProductRepository> {
+@RequiredArgsConstructor
+public class ProductService {
 
-    @Autowired
-    public ProductService(ProductRepository repository) {
-        super(repository, Product.class);
-    }
+    private final ProductRepository productRepository;
 
-    public Product create(ProductRequest productRequest) {
-        return repository.save(
-            new Product(
-                productRequest.getName(),
-                productRequest.isBlocked()
-            )
+    public Product requireById(Long id) {
+        return productRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("product not found by id")
         );
     }
 
-    public Product update(Long id, ProductRequest productRequest) {
-        Product product = this.findById(id);
+    public Page<Product> getAllProducts(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return productRepository.findAll(pageable);
+    }
 
-        product.setName(productRequest.getName());
-        product.setBlocked(productRequest.isBlocked());
-        return repository.save(product);
+    public Product create(Product product) {
+        return productRepository.save(product);
+    }
+
+    public Product update(Long id, Product newProduct) {
+        Product product = requireById(id);
+
+        product.setName(newProduct.getName());
+        product.setBlocked(newProduct.isBlocked());
+
+        return productRepository.save(product);
+    }
+
+    public void delete(Long id) {
+        Product product = requireById(id);
+
+        productRepository.delete(product);
     }
 }

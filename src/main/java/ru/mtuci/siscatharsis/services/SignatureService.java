@@ -1,48 +1,42 @@
 package ru.mtuci.siscatharsis.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.mtuci.siscatharsis.dto.external.sign.request.SignatureCreateRequest;
-import ru.mtuci.siscatharsis.dto.external.sign.request.SignatureFetchDiff;
-import ru.mtuci.siscatharsis.dto.external.sign.request.SignatureFetchUUIDrequest;
+import ru.mtuci.siscatharsis.dto.external.sign.request.SignaturePatchRequest;
 import ru.mtuci.siscatharsis.model.Signature;
 import ru.mtuci.siscatharsis.model.SignatureAudit;
 import ru.mtuci.siscatharsis.model.SignatureHistory;
 import ru.mtuci.siscatharsis.repositories.SignatureAuditRepository;
 import ru.mtuci.siscatharsis.repositories.SignatureHistoryRepository;
 import ru.mtuci.siscatharsis.repositories.SignatureRepository;
-import ru.mtuci.siscatharsis.utils.CryptoUtil;
+import ru.mtuci.siscatharsis.utils.ObjectUtils;
 
-import java.lang.reflect.Field;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
+// TODO: Выделить мердж свойств класса-объекта в хелпер метод?
+// TODO: Универсальный метод для создания вхождения в таблицу аудита
+// TODO: Выделить аудит и историю в отдельные сервисы
 @Service
+@RequiredArgsConstructor
 public class SignatureService {
         private final CryptoService cryptoService;
         private final SignatureRepository signatureRepository;
         private final SignatureAuditRepository signatureAuditRepository;
         private final SignatureHistoryRepository signatureHistoryRepository;
 
-        @Autowired
-        public SignatureService(CryptoService cryptoService, SignatureRepository signatureRepository, SignatureAuditRepository signatureAuditRepository, SignatureHistoryRepository signatureHistoryRepository) {
-                this.cryptoService = cryptoService;
-                this.signatureRepository = signatureRepository;
-                this.signatureAuditRepository = signatureAuditRepository;
-                this.signatureHistoryRepository = signatureHistoryRepository;
-        }
-
         public void checkDigitalSignature(Signature signature) {
                 String digitalSignature = signature.getDigitalSignature();
 
-                Signature.Status evaluatedStatus = Signature.Status.CORRUPTED;;
-                String evaluatedDigitalSignature;
+                Signature.Status evaluatedStatus;
                 try {
-                        evaluatedDigitalSignature = cryptoService.signWithCurrent(signature.toString());
+                        String evaluatedDigitalSignature = cryptoService.signWithCurrent(signature.toString());
                         if (evaluatedDigitalSignature.equals(digitalSignature)) {
                                 evaluatedStatus = Signature.Status.ACTUAL;
+                        } else {
+                                evaluatedStatus = Signature.Status.CORRUPTED;
                         }
                 } catch (Exception e) {
                         evaluatedStatus = Signature.Status.CORRUPTED;
@@ -52,121 +46,78 @@ public class SignatureService {
                 signatureRepository.save(signature);
         }
 
-        private Signature appendDigitalSignature(Signature signature) {
+        private void appendDigitalSignature(Signature signature) {
                 String digitalSignature;
                 try {
                         digitalSignature = cryptoService.signWithCurrent(signature.toString());
                 } catch (Exception e) {
-                        digitalSignature = "fail";
+                        digitalSignature = null;
                 }
 
                 signature.setDigitalSignature(digitalSignature);
-
-                return signature;
+                signature.setStatus(Signature.Status.ACTUAL);
         }
 
-        public Signature create(SignatureCreateRequest signatureCreateRequest, Long issuerId) {
-                Signature signature = Signature.builder()
-                        .threatName(signatureCreateRequest.getThreatName())
-                        .firstBytes(signatureCreateRequest.getFirstBytes())
-                        .remainderHash(signatureCreateRequest.getRemainderHash())
-                        .remainderLength(signatureCreateRequest.getRemainderLength())
-                        .fileType(signatureCreateRequest.getFileType())
-                        .offsetStart(signatureCreateRequest.getOffsetStart())
-                        .offsetEnd(signatureCreateRequest.getOffsetEnd())
-                        .updatedAt(Instant.now())
-                        .build();
+        public Signature requireById(UUID id) {
+                return signatureRepository.findById(id).orElseThrow(
+                        () -> new IllegalArgumentException("Signature not found")
+                );
+        }
+        public Signature create(Signature signature, Long issuerId) {
 
-                signature = appendDigitalSignature(signature);
+                appendDigitalSignature(signature);
 
                 signatureRepository.save(signature);
 
-                HashMap<String, Object> newFields = new HashMap<>();
-                for (Field field : signature.getClass().getDeclaredFields()) {
-                        try {
-                                field.setAccessible(true);
-                                newFields.put(field.getName(), field.get(signature));
-                        } catch (IllegalAccessException e) {
-                                // Пропускаем поля, которых нет в entity
-                        }
-                }
+                Map<String, Object> newFields = ObjectUtils.image(new Signature(), signature);
 
-                SignatureAudit audit = SignatureAudit.builder()
-                        .signatureId(signature.getId())
-                        .changedBy(issuerId)
-                        .changeType(SignatureAudit.ChangeType.UPDATED)
-                        .changedAt(Instant.now())
-                        .fieldsChanged(newFields.toString())
-                        .build();
-
-                signatureAuditRepository.save(audit);
+                createAuditRecord(signature.getId(), issuerId, SignatureAudit.ChangeType.CREATED, newFields);
 
                 return signature;
         }
 
-        public Signature patch(UUID guid, Signature newSignature, Long issuerId) {
-                Signature signature = signatureRepository.findById(guid).orElseThrow(
-                        () -> new RuntimeException("sss")
-                );
+        public Signature patch(UUID guid, SignaturePatchRequest newSignature, Long issuerId) throws IllegalAccessException {
+                Signature signature = requireById(guid);
 
                 SignatureHistory history = SignatureHistory.fromSignature(signature);
                 signatureHistoryRepository.save(history);
 
-                Class<?> entityClass = signature.getClass();
-                Class<?> updatesClass = newSignature.getClass();
+                Map<String, Object> updatedFields = ObjectUtils.merge(signature, newSignature);
 
-                HashMap<String, Object> updatedFields = new HashMap<>();
-
-                for (Field field : updatesClass.getDeclaredFields()) {
-                        try {
-                                field.setAccessible(true);
-                                Object value = field.get(newSignature);
-                                if (value != null) {
-                                        String fieldName = field.getName();
-                                        Field entityField = entityClass.getDeclaredField(fieldName);
-                                        entityField.setAccessible(true);
-                                        entityField.set(signature, value);
-
-                                        updatedFields.put(fieldName, value);
-                                }
-                        } catch (NoSuchFieldException | IllegalAccessException e) {
-                                // Пропускаем поля, которых нет в entity
-                        }
-                }
-
-                signature = appendDigitalSignature(signature);
+                appendDigitalSignature(signature);
                 signatureRepository.save(signature);
 
+                createAuditRecord(signature.getId(), issuerId, SignatureAudit.ChangeType.UPDATED, updatedFields);
+
+                return signature;
+        }
+
+        private void createAuditRecord(UUID signatureId, Long issuerId, SignatureAudit.ChangeType changeType, Map<String, Object> changedFields) {
                 SignatureAudit audit = SignatureAudit.builder()
-                        .signatureId(signature.getId())
+                        .signatureId(signatureId)
                         .changedBy(issuerId)
-                        .changeType(SignatureAudit.ChangeType.UPDATED)
+                        .changeType(changeType)
                         .changedAt(Instant.now())
-                        .fieldsChanged(updatedFields.toString())
+                        .fieldsChanged(changedFields.toString())
                         .build();
 
                 signatureAuditRepository.save(audit);
-
-                return signature;
         }
 
         public List<Signature> getAll() {
                 return signatureRepository.findAll();
         }
 
-        public List<Signature> getDiff(SignatureFetchDiff signatureFetchDiff) {
-                return signatureRepository.findAllByUpdatedAtAfter(signatureFetchDiff.getDateTime());
+        public List<Signature> getDiff(Instant timestamp) {
+                return signatureRepository.findAllByUpdatedAtAfter(timestamp);
         }
 
-        public List<Signature> getByUUIDS(SignatureFetchUUIDrequest signatureFetchUUIDrequest) {
-                Iterable<UUID> iter = signatureFetchUUIDrequest.getUuidList();
-                return signatureRepository.findAllById(iter);
+        public List<Signature> getByUUIDS(Iterable<UUID> iterable) {
+                return signatureRepository.findAllById(iterable);
         }
 
         public Signature markSignature(UUID guid, Signature.Status status) {
-                Signature signature = signatureRepository.findById(guid).orElseThrow(
-                        () -> new RuntimeException("sex")
-                );
+                Signature signature = requireById(guid);
 
                 signature.setStatus(status);
 

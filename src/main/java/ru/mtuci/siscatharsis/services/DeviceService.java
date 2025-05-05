@@ -1,23 +1,24 @@
 package ru.mtuci.siscatharsis.services;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.repositories.DeviceRepository;
+import ru.mtuci.siscatharsis.utils.ApiMessage;
 import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class DeviceService {
     private final DeviceRepository deviceRepository;
-
-    @Autowired
-    public DeviceService(DeviceRepository deviceRepository, UserService userService) {
-        this.deviceRepository = deviceRepository;
-    }
 
     // Предполагается что девайс ТОЧНО будет найден, любое другое поведение -> хуйня
     public Device requireUserDevice(String macAddress, User user) {
@@ -31,11 +32,19 @@ public class DeviceService {
         return deviceRepository.findByMacAddressAndUser(macAddress, user).isPresent();
     }
 
+    public Page<Device> getAllDevices(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return deviceRepository.findAll(pageable);
+    }
+
     public Device findById(Long deviceId) {
-        return deviceRepository.findById(deviceId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Device not found by id"
-                ));
+        return deviceRepository.findById(deviceId).orElse(null);
+    }
+
+    public Device requireById(Long deviceId) {
+        return deviceRepository.findById(deviceId).orElseThrow(
+                () -> new EntityNotFoundException("Device not found by id")
+        );
     }
 
     public List<Device> getByUserId(Long userId) {
@@ -44,24 +53,48 @@ public class DeviceService {
 
     // девайс к одному юзеру
     public Device registerOrUpdateDevice(String macAddress, User user) {
-        Device device = deviceRepository.findByMacAddressAndUser(macAddress, user)
-                .orElse(
-                        Device.builder()
-                                .user(user)
-                                .macAddress(macAddress)
-                                .build()
-                );
+        Device device = deviceRepository.findByMacAddressAndUser(macAddress, user).orElse(
+                Device.builder()
+                        .user(user)
+                        .macAddress(macAddress)
+                        .build()
+        );
 
         return deviceRepository.save(device);
     }
 
     // CRUD
 
-    public Device save(Device device) {
+    public Device create(Device device, User user) {
+        String macAddress = device.getMacAddress();
+
+        if (existsUserDevice(macAddress, user)) {
+            throw new IllegalArgumentException("Device already exists");
+        }
+
         return deviceRepository.save(device);
     }
 
-    public void delete(Device device) {
+    public Device update(Long id, Device newDevice) {
+        String macAddress = newDevice.getMacAddress();
+        User user = newDevice.getUser();
+
+        if (existsUserDevice(macAddress, user)) {
+            throw new IllegalArgumentException("Data collision");
+        }
+
+        Device device = requireById(id);
+
+        device.setUser(user);
+        device.setName(newDevice.getName());
+        device.setMacAddress(macAddress);
+
+        return deviceRepository.save(device);
+    }
+
+    public void delete(Long id) {
+        Device device = requireById(id);
+
         deviceRepository.delete(device);
     }
 }

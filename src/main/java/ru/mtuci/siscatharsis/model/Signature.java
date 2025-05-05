@@ -53,7 +53,6 @@ public class Signature {
 
         @UpdateTimestamp
         @Column(name = "updated_at")
-        @Temporal(TemporalType.TIMESTAMP)
         private Instant updatedAt;
 
         @Override

@@ -1,6 +1,7 @@
 package ru.mtuci.siscatharsis.controller.external;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,18 +20,13 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/profile")
+@RequiredArgsConstructor
 public class ProfileController {
 
     private final UserService userService;
     private final DeviceService deviceService;
     private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    public ProfileController(UserService userService, DeviceService deviceService, PasswordEncoder passwordEncoder) {
-        this.userService = userService;
-        this.deviceService = deviceService;
-        this.passwordEncoder = passwordEncoder;
-    }
     @GetMapping("/me")
     public ResponseEntity<?> myProfile(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -46,7 +42,7 @@ public class ProfileController {
         user.setPasswordHash(newPasswordHash);
 
         // тут еще надо все сессии просрочить
-        userService.save(user);
+        userService.update(user.getId(), user);
     }
 
     @GetMapping("/devices")
@@ -62,8 +58,9 @@ public class ProfileController {
     public ResponseEntity<?> getById(Authentication authentication, @PathVariable Long id) {
         User user = (User) authentication.getPrincipal();
 
-        if (deviceService.findById(id).getUser().getId() == user.getId()) {
-            return ApiMessage.Success(deviceService.findById(id));
+        Device device = deviceService.findById(id);
+        if (device.getUser().equals(user)) {
+            return ApiMessage.Success(device);
         }
 
         return ApiMessage.BadRequest("Not yours");
@@ -78,10 +75,12 @@ public class ProfileController {
             return ApiMessage.BadRequest("Not yours");
         }
 
-        device.setName(deviceRequest.getName());
-        device.setMacAddress(deviceRequest.getMacAddress());
+        Device updateDevice = Device.builder()
+                .name(deviceRequest.getName())
+                .macAddress(deviceRequest.getMacAddress())
+                .build();
 
-        deviceService.save(device);
+        deviceService.update(id, updateDevice);
 
         return ApiMessage.Secret("ggg");
     }
@@ -96,10 +95,12 @@ public class ProfileController {
             return ApiMessage.BadRequest("You cant delete your last device");
         }
 
-        Device device = userDevices.stream().filter(d -> d.getId().equals(id)).findFirst().orElse(null);
-        deviceService.delete(device);
+        userDevices.stream()
+                .filter(d -> d.getId().equals(id))
+                .findFirst()
+                .ifPresent(d -> deviceService.delete(id));
 
-        return ApiMessage.Success("success");
+        return ApiMessage.Success(id);
     }
 
     @PostMapping("/devices/add")
@@ -120,7 +121,7 @@ public class ProfileController {
                 .macAddress(macAddress)
                 .build();
 
-        deviceService.save(device);
+        deviceService.create(device, user);
 
         return ApiMessage.Success(device);
     }

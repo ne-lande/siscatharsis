@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+// TODO: rewrite all dto to records
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

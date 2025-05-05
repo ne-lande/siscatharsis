@@ -57,7 +57,6 @@ public class SignatureHistory {
         private Signature.Status status;
 
         @Column(name = "updated_at")
-        @Temporal(TemporalType.TIMESTAMP)
         private Instant updatedAt;
 
         public static SignatureHistory fromSignature(Signature signature) {

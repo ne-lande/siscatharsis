@@ -1,6 +1,7 @@
 package ru.mtuci.siscatharsis.services;
 
 import io.jsonwebtoken.Jwt;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,15 +14,10 @@ import ru.mtuci.siscatharsis.utils.JwtUtil;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class SessionService {
         private final UserSessionRepository userSessionRepository;
         private final JwtUtil jwtUtil;
-
-        @Autowired
-        public SessionService(UserSessionRepository userSessionRepository, JwtUtil jwtUtil) {
-                this.userSessionRepository = userSessionRepository;
-                this.jwtUtil = jwtUtil;
-        }
 
         public UserTokenResponse generateTokenPair(UserDetails userDetails, Long userId, Long deviceId) {
                 // просрочить все прошлые сессии

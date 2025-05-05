@@ -2,16 +2,15 @@ package ru.mtuci.siscatharsis.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
 @Entity
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "license_types")
 public class LicenseType {
@@ -36,19 +35,4 @@ public class LicenseType {
     @OneToMany(mappedBy = "type", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonBackReference
     private List<License> licenses;
-
-    public LicenseType(String name, int duration, int device_count, String description, List<License> licenses) {
-        this.name = name;
-        this.duration = duration;
-        this.deviceCount = device_count;
-        this.description = description;
-        this.licenses = licenses;
-    }
-
-    public LicenseType(String name, int duration, String description, int deviceCount) {
-        this.name = name;
-        this.duration = duration;
-        this.description = description;
-        this.deviceCount = deviceCount;
-    }
 }

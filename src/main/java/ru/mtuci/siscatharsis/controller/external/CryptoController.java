@@ -1,8 +1,10 @@
 package ru.mtuci.siscatharsis.controller.external;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.mtuci.siscatharsis.model.Crypto;
 import ru.mtuci.siscatharsis.model.Signature;
@@ -17,13 +19,10 @@ import java.util.Base64;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 public class CryptoController {
 
         private final CryptoService cryptoService;
-        @Autowired
-        public CryptoController(CryptoService cryptoService) {
-                this.cryptoService = cryptoService;
-        }
 
         @GetMapping("/public-key/get")
         public ResponseEntity<?> fetchPublicKey() {

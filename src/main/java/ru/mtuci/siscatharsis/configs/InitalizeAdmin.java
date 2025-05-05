@@ -1,12 +1,12 @@
 package ru.mtuci.siscatharsis.configs;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.model.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.mtuci.siscatharsis.services.DeviceService;
 import ru.mtuci.siscatharsis.services.UserService;
-import ru.mtuci.siscatharsis.enums.UserRoleEnum;
 import org.springframework.stereotype.Component;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,22 +15,15 @@ import java.security.SecureRandom;
 //TODO: 1. Как временное решение пойдёт, но лучше тогда использовать систему миграции и скрипт, который не попадёт в гитхаб
 
 @Component
+@RequiredArgsConstructor
 public class InitalizeAdmin implements CommandLineRunner {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final DeviceService deviceService;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private DeviceService deviceService;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Value("${admin.username}")
-    private String username;
-
-    @Value("${admin.password}")
-    private String password;
+    @Value("${admin.username}") private String username;
+    @Value("${admin.password}") private String password;
 
     private final String email = "admin@siscatharsis.ru";
 
@@ -69,21 +62,21 @@ public class InitalizeAdmin implements CommandLineRunner {
 
         initializePassword();
 
-        User user = userService.save(
-            User.builder()
+        User user = User.builder()
                 .login(this.username)
                 .passwordHash(getPassword())
                 .email("admin@siscatharsis.ru")
-                .role(UserRoleEnum.ROLE_ADMIN)
-                .build()
-        );
+                .role(User.Role.ROLE_ADMIN)
+                .build();
 
-        deviceService.save(
-            Device.builder()
+        userService.create(user);
+
+        Device device = Device.builder()
                 .name("admin")
                 .macAddress("admin")
                 .user(user)
-                .build()
-        );
+                .build();
+
+        deviceService.create(device, user);
     }
 }

@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.mtuci.siscatharsis.enums.UserRoleEnum;
+import ru.mtuci.siscatharsis.model.User;
 
 @Getter
 @Setter
@@ -23,5 +23,5 @@ public class UserRequest {
     private String email;
 
     @NotEmpty(message = "Role is empty")
-    private UserRoleEnum role;
+    private User.Role role;
 }

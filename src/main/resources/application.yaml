@@ -12,6 +12,9 @@ spring:
     open-in-view: true
   mvc:
     log-request-details: true
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
 
 management.endpoints.web.exposure.include: health
 
@@ -35,7 +38,7 @@ logging:
     org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping: TRACE
 
 jwt:
-  secret: "LARGE RANDOM ASS STRING LMAO TRY TO GUESS IT"
+  secret: ${JWT_KEY}
   expiration:
     access: 3600000
     refresh: 3600000

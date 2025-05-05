@@ -1,4 +1,4 @@
-package ru.mtuci.siscatharsis.dto.internal.license.request;
+package ru.mtuci.siscatharsis.dto.internal.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,11 +11,9 @@ import java.util.Date;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class LicenseCreateRequest{
+public class LicenseRequest {
     private Long ownerId;
     private Long productId;
     private Long typeId;
-
     private Date endingDate;
-    private String description;
 }

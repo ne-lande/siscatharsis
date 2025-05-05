@@ -1,61 +1,79 @@
 package ru.mtuci.siscatharsis.controller.internal;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import ru.mtuci.siscatharsis.base.AbstractCRUDController;
 import ru.mtuci.siscatharsis.dto.internal.request.UserRequest;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.services.UserService;
 import ru.mtuci.siscatharsis.repositories.UserRepository;
+import ru.mtuci.siscatharsis.utils.ApiMessage;
 
 @RestController
 @RequestMapping("/admin/user")
 @PreAuthorize("hasRole('ROLE_ADMIN')")
-public class UserController extends AbstractCRUDController<User, UserRepository, UserService> {
+@RequiredArgsConstructor
+public class UserController {
 
-    //private final UserService userService;
+    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    public UserController(UserService service, PasswordEncoder passwordEncoder) {
-        super(service);
-        this.passwordEncoder = passwordEncoder;
+    @GetMapping("/")
+    public ResponseEntity<?> readAllUsers(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        Page<User> users = userService.getAllUsers(page, size);
+
+        return ApiMessage.Success(users);
     }
 
-    protected User createEntity(UserRequest userRequest) {
-        if (service.findByLogin(userRequest.getLogin()) != null) {
-            throw new IllegalArgumentException("Login already assigned");
-        }
+    @GetMapping("/{id}")
+    public ResponseEntity<?> readUser(@PathVariable Long id) {
+        User user = userService.requireById(id);
 
-        if (service.findByEmail(userRequest.getEmail()) != null) {
-            throw new IllegalArgumentException("Email already assigned");
-        }
-
-        User user = new User(userRequest.getLogin(), passwordEncoder.encode(userRequest.getPassword()), userRequest.getEmail(), userRequest.getRole(), null);
-        service.save(user);
-        return user;
+        return ApiMessage.Success(user);
     }
 
-    protected User updateEntity(Long id, UserRequest userRequest) {
-        User user = service.findById(id);
+    @PostMapping("/")
+    public ResponseEntity<?> createUser(@Valid @RequestBody UserRequest userRequest) {
+        String passwordHash = passwordEncoder.encode(userRequest.getPassword());
 
-        if (service.findByLogin(userRequest.getLogin()) != null) {
-            throw new IllegalArgumentException("Login already assigned");
-        }
+        User user = User.builder()
+                .login(userRequest.getLogin())
+                .email(userRequest.getEmail())
+                .role(userRequest.getRole())
+                .passwordHash(passwordHash)
+                .build();
 
-        if (service.findByEmail(userRequest.getEmail()) != null) {
-            throw new IllegalArgumentException("Email already assigned");
-        }
+        userService.create(user);
 
-        user.setLogin(userRequest.getLogin());
-        user.setEmail(userRequest.getEmail());
-        user.setPasswordHash(passwordEncoder.encode(userRequest.getPassword()));
-        user.setRole(userRequest.getRole());
+        return ApiMessage.Success(user);
+    }
 
-        service.save(user);
-        return user;
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @Valid @RequestBody UserRequest userRequest) {
+        String passwordHash = passwordEncoder.encode(userRequest.getPassword());
+
+        User user = User.builder()
+                .login(userRequest.getLogin())
+                .email(userRequest.getEmail())
+                .role(userRequest.getRole())
+                .passwordHash(passwordHash)
+                .build();
+
+        userService.update(id, user);
+
+        return ApiMessage.Success(user);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        userService.delete(id);
+
+        return ApiMessage.Success(id);
     }
 }

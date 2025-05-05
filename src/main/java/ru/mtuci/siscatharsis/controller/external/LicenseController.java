@@ -1,6 +1,7 @@
 package ru.mtuci.siscatharsis.controller.external;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -23,18 +24,12 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/license")
+@RequiredArgsConstructor
 public class LicenseController {
 
     private final UserService userService;
     private final DeviceService deviceService;
     private final LicenseService licenseService;
-
-    @Autowired
-    public LicenseController(UserService userService, DeviceService deviceService, LicenseService licenseService) {
-        this.userService = userService;
-        this.deviceService = deviceService;
-        this.licenseService = licenseService;
-    }
 
     @GetMapping("/current")
     public ResponseEntity<?> getCurrentLicense(Authentication authentication) {
@@ -61,6 +56,7 @@ public class LicenseController {
         return ApiMessage.Success(tickets);
     }
 
+    // TODO: extract ticket generation in controller
     @PostMapping("/activate")
     public ResponseEntity<?> activateLicense(Authentication authentication, @Valid @RequestBody LicenseActivationRequest licenseActivationRequest) throws Exception {
         UUID activationCode = licenseActivationRequest.getActivationCode();
@@ -73,7 +69,7 @@ public class LicenseController {
 
         Ticket ticket = licenseService.activateLicense(
                 licenseActivationRequest.getActivationCode(),
-                device,user
+                device, user
         );
 
         return ApiMessage.Success(ticket);
@@ -82,6 +78,7 @@ public class LicenseController {
     @PostMapping("/update")
     public ResponseEntity<?> updateLicense(Authentication authentication, @Valid @RequestBody LicenseUpdateRequest licenseUpdateRequest) throws Exception {
         User user = (User) authentication.getPrincipal();
+
         String macAddress = licenseUpdateRequest.getMacAddress();
 
         Device device = deviceService.requireUserDevice(macAddress, user);

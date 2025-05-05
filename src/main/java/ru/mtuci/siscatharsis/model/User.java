@@ -9,7 +9,6 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import ru.mtuci.siscatharsis.enums.UserRoleEnum;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -24,6 +23,11 @@ import java.util.List;
 @Table(name = "users")
 @JsonIgnoreProperties({"licenses", "devices"})
 public class User implements UserDetails {
+
+    public enum Role {
+        ROLE_USER,
+        ROLE_ADMIN
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,7 +47,7 @@ public class User implements UserDetails {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
-    private UserRoleEnum role;
+    private Role role;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
@@ -57,33 +61,6 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<LicenseHistory> licenseHistories;
-
-    public User(Long id, String login, String passwordHash, String email, UserRoleEnum role, List<License> licenses) {
-        this.id = id;
-        this.login = login;
-        this.passwordHash = passwordHash;
-        this.email = email;
-        this.role = role;
-        this.licenses = licenses;
-    }
-
-    public User(String login, String passwordHash, String email, UserRoleEnum role, List<License> licenses, List<Device> devices, List<LicenseHistory> licenseHistories) {
-        this.login = login;
-        this.passwordHash = passwordHash;
-        this.email = email;
-        this.role = role;
-        this.licenses = licenses;
-        this.devices = devices;
-        this.licenseHistories = licenseHistories;
-    }
-
-    public User(String login, String passwordHash, String email, UserRoleEnum role, List<License> licenses) {
-        this.login = login;
-        this.passwordHash = passwordHash;
-        this.email = email;
-        this.role = role;
-        this.licenses = licenses;
-    }
 
     @Override
     public boolean isAccountNonExpired() {

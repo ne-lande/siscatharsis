@@ -1,40 +1,56 @@
 package ru.mtuci.siscatharsis.services;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import ru.mtuci.siscatharsis.dto.internal.request.LicenseTypeRequest;
 import ru.mtuci.siscatharsis.model.LicenseType;
+import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.repositories.LicenseTypeRepository;
-import ru.mtuci.siscatharsis.base.AbstractCRUDService;
 
 @Service
-public class LicenseTypeService extends AbstractCRUDService<LicenseType, LicenseTypeRepository>{
+@RequiredArgsConstructor
+public class LicenseTypeService {
 
-    @Autowired
-    public LicenseTypeService(LicenseTypeRepository repository) {
-        super(repository, LicenseType.class);
+    private final LicenseTypeRepository licenseTypeRepository;
+
+    public Page<LicenseType> getAllLicenseTypes(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return licenseTypeRepository.findAll(pageable);
     }
 
-    public LicenseType create(LicenseTypeRequest licenseTypeRequest) {
-        return repository.save(
-            new LicenseType(
-                licenseTypeRequest.getName(),
-                licenseTypeRequest.getDefaultDuration(),
-                licenseTypeRequest.getDescription(),
-                licenseTypeRequest.getDefaultDeviceCount()
-            )
+    public LicenseType findById(Long id) {
+        return licenseTypeRepository.findById(id).orElse(null);
+    }
+
+    public LicenseType requireById(Long id) {
+        return licenseTypeRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("a")
         );
     }
 
-    public LicenseType update(Long id, LicenseTypeRequest licenseTypeRequest) {
-        LicenseType licenseType = this.findById(id);
+    public LicenseType create(LicenseType licenseType) {
+        return licenseTypeRepository.save(licenseType);
+    }
 
-        licenseType.setName(licenseTypeRequest.getName());
-        licenseType.setDuration(licenseTypeRequest.getDefaultDuration());
-        licenseType.setDescription(licenseTypeRequest.getDescription());
-        licenseType.setDeviceCount(licenseTypeRequest.getDefaultDeviceCount());
+    public LicenseType update(Long id, LicenseType newLicenseType) {
+        LicenseType licenseType = findById(id);
 
-        return repository.save(licenseType);
+        licenseType.setName(newLicenseType.getName());
+        licenseType.setDuration(newLicenseType.getDuration());
+        licenseType.setDescription(newLicenseType.getDescription());
+        licenseType.setDeviceCount(newLicenseType.getDeviceCount());
+
+        return licenseTypeRepository.save(licenseType);
+    }
+
+    public void delete(Long id) {
+        LicenseType licenseType = requireById(id);
+
+        licenseTypeRepository.delete(licenseType);
     }
 }

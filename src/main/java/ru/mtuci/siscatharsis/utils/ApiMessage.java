@@ -8,7 +8,12 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 public class ApiMessage {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    // TODO: Extract ObjectMapper as bean to be global
+    // TODO: Change emplicit behaviour (give the object, status of evaluation should be response code only)
+    private static final ObjectMapper objectMapper = new ObjectMapper()
+            .registerModule(new JavaTimeModule())
+            .disable(com.fasterxml.jackson.databind.SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
 
     public static ResponseEntity<String> BadRequest(String message) {
         ObjectNode json = objectMapper.createObjectNode();

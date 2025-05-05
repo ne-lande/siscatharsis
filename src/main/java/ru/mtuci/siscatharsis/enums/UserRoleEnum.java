@@ -1,6 +1,0 @@
-package ru.mtuci.siscatharsis.enums;
-
-public enum UserRoleEnum {
-    ROLE_USER,
-    ROLE_ADMIN
-}

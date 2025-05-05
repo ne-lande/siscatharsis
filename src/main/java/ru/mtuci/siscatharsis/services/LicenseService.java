@@ -1,15 +1,10 @@
 package ru.mtuci.siscatharsis.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import ru.mtuci.siscatharsis.base.AbstractCRUDService;
 import ru.mtuci.siscatharsis.dto.external.license.response.Ticket;
-import ru.mtuci.siscatharsis.dto.internal.license.request.LicenseUpdateRequest;
-import ru.mtuci.siscatharsis.dto.internal.license.request.LicenseCreateRequest;
 import ru.mtuci.siscatharsis.model.*;
-import ru.mtuci.siscatharsis.repositories.LicenseHistoryRepository;
 import ru.mtuci.siscatharsis.repositories.LicenseRepository;
 import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 import ru.mtuci.siscatharsis.utils.LicenseException;
@@ -27,93 +22,58 @@ import java.util.ArrayList;
 //TODO: 5. activateLicense - пересмотреть проверку. Пользователь должен иметь возможность повторно активировать лицензию на другом устройстве
 
 @Service
-public class LicenseService extends AbstractCRUDService<License, LicenseRepository> {
-    private final ProductService productService;
-    private final UserService userService;
-    private final LicenseTypeService licenseTypeService;
-    private final LicenseHistoryRepository licenseHistoryRepository;
-    private final DeviceService deviceService;
+@RequiredArgsConstructor
+public class LicenseService {
+    private final LicenseRepository licenseRepository;
+    private final LicenseHistoryService licenseHistoryService;
     private final DeviceLicenseService deviceLicenseService;
     private final CryptoService cryptoService;
 
-    @Autowired
-    public LicenseService(LicenseRepository repository, ProductService productService, UserService userService,
-                          LicenseTypeService licenseTypeService, LicenseHistoryRepository licenseHistoryRepository,
-                          DeviceLicenseService deviceLicenseService, DeviceService deviceService,
-                          CryptoService cryptoService) {
-        super(repository, License.class);
-        this.licenseHistoryRepository = licenseHistoryRepository;
-        this.productService = productService;
-        this.userService = userService;
-        this.deviceService = deviceService;
-        this.licenseTypeService = licenseTypeService;
-        this.deviceLicenseService = deviceLicenseService;
-        this.cryptoService = cryptoService;
+    public License requireById(Long id) {
+        return licenseRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("License not found")
+        );
     }
 
-    //TODO: 6. Дублируется код в create и update
-    //TODO: 7. create - license.setDuration(licenseRequest.getDuration()); Лучше сделать в LicenceType свойство - defaultDuration и его использовать
-    //TODO: 8. create - license.setProduct(product); Присутствует дважды
-    public License create(LicenseCreateRequest licenseRequest) {
-        User owner = userService.findById(licenseRequest.getOwnerId());
-        Product product = productService.findById(licenseRequest.getProductId());
-        LicenseType licenseType = licenseTypeService.findById(licenseRequest.getTypeId());
-
-        License license = new License(
-            owner,
-            product,
-            licenseType
+    public License requireByCode(UUID code) {
+        return licenseRepository.findByCode(code).orElseThrow(
+                () -> new EntityNotFoundException("License not found with the given activation code")
         );
+    }
 
-        license.setEndingDate(licenseRequest.getEndingDate());
-        license.setDescription(licenseRequest.getDescription());
+    public License create(License license, User issuer) {
+        licenseRepository.save(license);
 
-        repository.save(license);
-
-        licenseHistoryRepository.save(LicenseHistory.create(license));
+        licenseHistoryService.adminCreate(license, issuer);
 
         return license;
     }
 
-    //TODO: 6. Дублируется код в create и update
-    //TODO: 9. update - если меняются свойства существующей лицензии, то не нужно менять код активации и владельца
-    public License update(Long id, LicenseUpdateRequest licenseRequest) {
-        User user = userService.findById(licenseRequest.getUserId());
-        Product product = productService.findById(licenseRequest.getProductId());
-        LicenseType licenseType = licenseTypeService.findById(licenseRequest.getTypeId());
+    public License update(Long id, License updateLicense, User issuer) {
+        License license = requireById(id);
 
-        License license = this.findById(id);
+        license.setUser(updateLicense.getUser());
+        license.setProduct(updateLicense.getProduct());
+        license.setType(updateLicense.getType());
 
-        license.setUser(user);
-        license.setProduct(product);
-        license.setType(licenseType);
+        license.setFirstActivationDate(updateLicense.getFirstActivationDate());
+        license.setEndingDate(updateLicense.getEndingDate());
 
-        license.setFirstActivationDate(licenseRequest.getFirstActivationDate());
-        license.setEndingDate(licenseRequest.getEndingDate());
+        license.setIsBlocked(updateLicense.getIsBlocked());
+        license.setDevicesCount(updateLicense.getDevicesCount());
+        license.setDuration(updateLicense.getDuration());
+        license.setDescription(updateLicense.getDescription());
 
-        license.setIsBlocked(licenseRequest.getIsBlocked());
-        license.setDevicesCount(licenseRequest.getDeviceCount());
-        license.setDuration(licenseRequest.getDuration());
-        license.setDescription(licenseRequest.getDescription());
+        licenseRepository.save(license);
 
-        licenseHistoryRepository.save(LicenseHistory.update(license));
+        licenseHistoryService.adminUpdate(license, issuer);
 
-        return repository.save(license);
-    }
-
-    public License findByCode(UUID code) {
-        return repository
-                .findByCode(code)
-                .orElseThrow(() ->
-                        new EntityNotFoundException(
-                                "License not found with the given activation code"
-                        )
-                );
+        return license;
     }
 
     //TODO: 5. activateLicense - пересмотреть проверку. Пользователь должен иметь возможность повторно активировать лицензию на другом устройстве
     public Ticket activateLicense(UUID activationCode, Device device, User user) throws Exception {
-        License license = this.findByCode(activationCode);
+        License license = requireByCode(activationCode);
 
         //TODO 5.
         validateActivation(license, device, user);
@@ -124,7 +84,7 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
 
         deviceLicenseService.createDeviceLicense(license, device);
 
-        licenseHistoryRepository.save(LicenseHistory.activate(license));
+        licenseHistoryService.userActivate(license, user);
 
         return generateTicket(license, device);
     }
@@ -135,7 +95,9 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
         List<License> activeLicenses = new ArrayList<>();
 
         for (DeviceLicense deviceLicense : deviceLicenses) {
-            License license = this.findById(deviceLicense.getLicense().getId());
+            Long licenseId = deviceLicense.getLicense().getId();
+
+            License license = licenseRepository.findById(licenseId).orElse(null);
 
             if (license.getIsBlocked()) {
                 continue; // Пропускаем заблокированные лицензии
@@ -148,7 +110,7 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
     }
     
     public Ticket updateExistentLicense(UUID licenseCode, User user, Device device) throws Exception {
-        License license = this.findByCode(licenseCode);
+        License license = requireByCode(licenseCode);
 
         if (license.getIsBlocked()) {
             throw new LicenseException("License is blocked");
@@ -162,17 +124,9 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
                 new Date(license.getEndingDate().getTime() + license.getDuration())
         );
 
-        repository.save(license);
+        licenseRepository.save(license);
 
-        licenseHistoryRepository.save(
-                new LicenseHistory(
-                        license,
-                        license.getOwner(),
-                        "UPDATED BY USER",
-                        new Date(),
-                        "License updated"
-                )
-        );
+        licenseHistoryService.userUpdate(license, user);
 
         return generateTicket(
                 license,
@@ -227,6 +181,12 @@ public class LicenseService extends AbstractCRUDService<License, LicenseReposito
         );
         license.setUser(user);
 
-        repository.save(license);
+        licenseRepository.save(license);
+    }
+
+    public void delete(Long id) {
+        License license = requireById(id);
+
+        licenseRepository.delete(license);
     }
 }

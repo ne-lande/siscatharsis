@@ -1,5 +1,6 @@
 package ru.mtuci.siscatharsis.services;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.mtuci.siscatharsis.model.Crypto;
@@ -11,14 +12,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 
 @Service
+@RequiredArgsConstructor
 public class CryptoService {
 
         private final CryptoRepository cryptoRepository;
-
-        @Autowired
-        public CryptoService(CryptoRepository cryptoRepository) {
-                this.cryptoRepository = cryptoRepository;
-        }
 
         public Crypto generateNewKeypair() throws NoSuchAlgorithmException {
                 KeyPair newKeyPair = CryptoUtil.generateNewKeypair();
@@ -35,7 +32,9 @@ public class CryptoService {
         }
 
         public Crypto getCurrentKeypair() {
-                Crypto crypto = cryptoRepository.findById(1L).orElseThrow(() -> new RuntimeException("smh happened"));
+                Crypto crypto = cryptoRepository.findById(1L).orElseThrow(
+                        () -> new RuntimeException("smh happened")
+                );
 
                 return crypto;
         }
