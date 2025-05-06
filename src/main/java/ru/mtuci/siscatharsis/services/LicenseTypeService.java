@@ -1,15 +1,12 @@
 package ru.mtuci.siscatharsis.services;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import ru.mtuci.siscatharsis.dto.internal.request.LicenseTypeRequest;
 import ru.mtuci.siscatharsis.model.LicenseType;
-import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.repositories.LicenseTypeRepository;
 
 @Service

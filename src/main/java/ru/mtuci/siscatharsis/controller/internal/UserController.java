@@ -6,13 +6,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import ru.mtuci.siscatharsis.dto.internal.request.UserRequest;
+import ru.mtuci.siscatharsis.dto.user.UserCreateUpdateRequest;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.services.UserService;
-import ru.mtuci.siscatharsis.repositories.UserRepository;
 import ru.mtuci.siscatharsis.utils.ApiMessage;
 
 @RestController
@@ -39,13 +37,13 @@ public class UserController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<?> createUser(@Valid @RequestBody UserRequest userRequest) {
-        String passwordHash = passwordEncoder.encode(userRequest.getPassword());
+    public ResponseEntity<?> createUser(@Valid @RequestBody UserCreateUpdateRequest userRequest) {
+        String passwordHash = passwordEncoder.encode(userRequest.password());
 
         User user = User.builder()
-                .login(userRequest.getLogin())
-                .email(userRequest.getEmail())
-                .role(userRequest.getRole())
+                .login(userRequest.login())
+                .email(userRequest.email())
+                .role(userRequest.role())
                 .passwordHash(passwordHash)
                 .build();
 
@@ -55,13 +53,13 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @Valid @RequestBody UserRequest userRequest) {
-        String passwordHash = passwordEncoder.encode(userRequest.getPassword());
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @Valid @RequestBody UserCreateUpdateRequest userRequest) {
+        String passwordHash = passwordEncoder.encode(userRequest.password());
 
         User user = User.builder()
-                .login(userRequest.getLogin())
-                .email(userRequest.getEmail())
-                .role(userRequest.getRole())
+                .login(userRequest.login())
+                .email(userRequest.email())
+                .role(userRequest.role())
                 .passwordHash(passwordHash)
                 .build();
 

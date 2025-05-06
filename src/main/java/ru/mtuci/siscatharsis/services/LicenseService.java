@@ -3,7 +3,7 @@ package ru.mtuci.siscatharsis.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import ru.mtuci.siscatharsis.dto.external.license.response.Ticket;
+import ru.mtuci.siscatharsis.dto.license.LicenseResponse;
 import ru.mtuci.siscatharsis.model.*;
 import ru.mtuci.siscatharsis.repositories.LicenseRepository;
 import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
@@ -72,7 +72,7 @@ public class LicenseService {
     }
 
     //TODO: 5. activateLicense - пересмотреть проверку. Пользователь должен иметь возможность повторно активировать лицензию на другом устройстве
-    public Ticket activateLicense(UUID activationCode, Device device, User user) throws Exception {
+    public LicenseResponse activateLicense(UUID activationCode, Device device, User user) throws Exception {
         License license = requireByCode(activationCode);
 
         //TODO 5.
@@ -109,7 +109,7 @@ public class LicenseService {
         return activeLicenses;
     }
     
-    public Ticket updateExistentLicense(UUID licenseCode, User user, Device device) throws Exception {
+    public LicenseResponse updateExistentLicense(UUID licenseCode, User user, Device device) throws Exception {
         License license = requireByCode(licenseCode);
 
         if (license.getIsBlocked()) {
@@ -135,8 +135,8 @@ public class LicenseService {
     }
 
     //TODO: 3. generateLicenseResponse - получается, что лицензия в тикете всегда разблокирована
-    public Ticket generateTicket(License license, Device device) throws Exception {
-        Ticket ticket = new Ticket();
+    public LicenseResponse generateTicket(License license, Device device) throws Exception {
+        LicenseResponse ticket = new LicenseResponse();
 
         ticket.setCurrentDate(new Date());
         ticket.setLifetime(license.getDuration());

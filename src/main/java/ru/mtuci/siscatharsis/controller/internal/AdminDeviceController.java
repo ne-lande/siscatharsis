@@ -1,13 +1,12 @@
 package ru.mtuci.siscatharsis.controller.internal;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import ru.mtuci.siscatharsis.dto.internal.request.DeviceRequest;
+import ru.mtuci.siscatharsis.dto.device.DeviceCreateUpdateRequest;
 import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.services.DeviceService;
@@ -38,13 +37,13 @@ public class AdminDeviceController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<?> createDevice(@RequestBody DeviceRequest deviceRequest) {
-        User user = userService.requireById(deviceRequest.getUserId());
+    public ResponseEntity<?> createDevice(@RequestBody DeviceCreateUpdateRequest deviceRequest) {
+        User user = userService.requireById(deviceRequest.userId());
 
         Device device = Device.builder()
                 .user(user)
-                .name(deviceRequest.getDeviceName())
-                .macAddress(deviceRequest.getMacAddress())
+                .name(deviceRequest.deviceName())
+                .macAddress(deviceRequest.macAddress())
                 .build();
 
         deviceService.create(device, user);
@@ -53,13 +52,13 @@ public class AdminDeviceController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateDevice(@PathVariable Long id, @RequestBody DeviceRequest deviceRequest) {
-        User user = userService.requireById(deviceRequest.getUserId());
+    public ResponseEntity<?> updateDevice(@PathVariable Long id, @RequestBody DeviceCreateUpdateRequest deviceRequest) {
+        User user = userService.requireById(deviceRequest.userId());
 
         Device device = Device.builder()
                 .user(user)
-                .name(deviceRequest.getDeviceName())
-                .macAddress(deviceRequest.getMacAddress())
+                .name(deviceRequest.deviceName())
+                .macAddress(deviceRequest.macAddress())
                 .build();
 
         deviceService.update(id, device);

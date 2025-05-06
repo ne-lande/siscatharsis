@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*;
 
 import ru.mtuci.siscatharsis.services.DeviceLicenseService;
 
+// это точно нужно
+// как по-моему, сервисные сущности не должны поддерживать CRUD
 @RestController
 @RequestMapping("/admin/device-license")
 @PreAuthorize("hasRole('ROLE_ADMIN')")

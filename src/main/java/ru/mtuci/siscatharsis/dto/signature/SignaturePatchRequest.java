@@ -1,4 +1,4 @@
-package ru.mtuci.siscatharsis.dto.external.sign.request;
+package ru.mtuci.siscatharsis.dto.signature;
 
 // Little test
 public record SignaturePatchRequest(

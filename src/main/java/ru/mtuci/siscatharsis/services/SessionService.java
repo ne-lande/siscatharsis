@@ -1,12 +1,9 @@
 package ru.mtuci.siscatharsis.services;
 
-import io.jsonwebtoken.Jwt;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import ru.mtuci.siscatharsis.dto.external.auth.response.UserTokenResponse;
+import ru.mtuci.siscatharsis.dto.user.RefreshTokenResponse;
 import ru.mtuci.siscatharsis.model.UserSession;
 import ru.mtuci.siscatharsis.repositories.UserSessionRepository;
 import ru.mtuci.siscatharsis.utils.JwtUtil;
@@ -19,7 +16,7 @@ public class SessionService {
         private final UserSessionRepository userSessionRepository;
         private final JwtUtil jwtUtil;
 
-        public UserTokenResponse generateTokenPair(UserDetails userDetails, Long userId, Long deviceId) {
+        public RefreshTokenResponse generateTokenPair(UserDetails userDetails, Long userId, Long deviceId) {
                 // просрочить все прошлые сессии
                 userSessionRepository.getByUserIdAndDeviceId(userId, deviceId).stream()
                         .filter(c -> c.getStatus() == UserSession.SessionStatus.ACTIVE)
@@ -43,7 +40,7 @@ public class SessionService {
                 String refreshToken = jwtUtil.createRefreshToken(userDetails, tokenId, deviceId);
                 String accessToken = jwtUtil.createAccessToken(userDetails);
 
-                return UserTokenResponse.builder()
+                return RefreshTokenResponse.builder()
                         .token(refreshToken)
                         .accessToken(accessToken)
                         .build();

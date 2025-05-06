@@ -2,17 +2,14 @@ package ru.mtuci.siscatharsis.controller.internal;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import ru.mtuci.siscatharsis.dto.external.sign.request.SignatureCreateRequest;
-import ru.mtuci.siscatharsis.dto.external.sign.request.SignatureDeleteRequest;
-import ru.mtuci.siscatharsis.dto.external.sign.request.SignaturePatchRequest;
+import ru.mtuci.siscatharsis.dto.signature.SignatureCreateRequest;
+import ru.mtuci.siscatharsis.dto.signature.SignaturePatchRequest;
 import ru.mtuci.siscatharsis.model.Signature;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.services.SignatureService;
-import ru.mtuci.siscatharsis.services.UserService;
 import ru.mtuci.siscatharsis.utils.ApiMessage;
 
 import java.time.Instant;
@@ -30,13 +27,13 @@ public class AdminSignatureController {
                 Long userId = user.getId();
 
                 Signature signature = Signature.builder()
-                        .threatName(signatureCreateRequest.getThreatName())
-                        .firstBytes(signatureCreateRequest.getFirstBytes())
-                        .remainderHash(signatureCreateRequest.getRemainderHash())
-                        .remainderLength(signatureCreateRequest.getRemainderLength())
-                        .fileType(signatureCreateRequest.getFileType())
-                        .offsetStart(signatureCreateRequest.getOffsetStart())
-                        .offsetEnd(signatureCreateRequest.getOffsetEnd())
+                        .threatName(signatureCreateRequest.threatName())
+                        .firstBytes(signatureCreateRequest.firstBytes())
+                        .remainderHash(signatureCreateRequest.remainderHash())
+                        .remainderLength(signatureCreateRequest.remainderLength())
+                        .fileType(signatureCreateRequest.fileType())
+                        .offsetStart(signatureCreateRequest.offsetStart())
+                        .offsetEnd(signatureCreateRequest.offsetEnd())
                         .updatedAt(Instant.now())
                         .build();
 

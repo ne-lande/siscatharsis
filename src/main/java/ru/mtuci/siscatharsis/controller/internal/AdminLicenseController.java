@@ -6,7 +6,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import ru.mtuci.siscatharsis.dto.internal.request.LicenseRequest;
+import ru.mtuci.siscatharsis.dto.license.LicenseCreateUpdateRequest;
 import ru.mtuci.siscatharsis.model.License;
 import ru.mtuci.siscatharsis.model.LicenseType;
 import ru.mtuci.siscatharsis.model.Product;
@@ -29,18 +29,18 @@ public class AdminLicenseController {
     private final ProductService productService;
 
     @PostMapping("/")
-    public ResponseEntity<?> create(Authentication authentication, @RequestBody LicenseRequest licenseCreateRequest) {
+    public ResponseEntity<?> create(Authentication authentication, @RequestBody LicenseCreateUpdateRequest licenseCreateRequest) {
         User issuer = (User) authentication.getPrincipal();
 
-        User owner = userService.requireById(licenseCreateRequest.getOwnerId());
-        Product product = productService.requireById(licenseCreateRequest.getProductId());
-        LicenseType licenseType = licenseTypeService.requireById(licenseCreateRequest.getTypeId());
+        User owner = userService.requireById(licenseCreateRequest.ownerId());
+        Product product = productService.requireById(licenseCreateRequest.productId());
+        LicenseType licenseType = licenseTypeService.requireById(licenseCreateRequest.typeId());
 
         License license = License.builder()
                 .owner(owner)
                 .product(product)
                 .type(licenseType)
-                .endingDate(licenseCreateRequest.getEndingDate())
+                .endingDate(licenseCreateRequest.endingDate())
                 .devicesCount(licenseType.getDeviceCount())
                 .duration(licenseType.getDuration())
                 .description(licenseType.getDescription())
@@ -59,18 +59,18 @@ public class AdminLicenseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(Authentication authentication, @PathVariable Long id, @RequestBody LicenseRequest licenseUpdateRequest) {
+    public ResponseEntity<?> update(Authentication authentication, @PathVariable Long id, @RequestBody LicenseCreateUpdateRequest licenseUpdateRequest) {
         User issuer = (User) authentication.getPrincipal();
 
-        User owner = userService.requireById(licenseUpdateRequest.getOwnerId());
-        Product product = productService.requireById(licenseUpdateRequest.getProductId());
-        LicenseType licenseType = licenseTypeService.requireById(licenseUpdateRequest.getTypeId());
+        User owner = userService.requireById(licenseUpdateRequest.ownerId());
+        Product product = productService.requireById(licenseUpdateRequest.productId());
+        LicenseType licenseType = licenseTypeService.requireById(licenseUpdateRequest.typeId());
 
         License license = License.builder()
                 .owner(owner)
                 .product(product)
                 .type(licenseType)
-                .endingDate(licenseUpdateRequest.getEndingDate())
+                .endingDate(licenseUpdateRequest.endingDate())
                 .devicesCount(licenseType.getDeviceCount())
                 .duration(licenseType.getDuration())
                 .description(licenseType.getDescription())

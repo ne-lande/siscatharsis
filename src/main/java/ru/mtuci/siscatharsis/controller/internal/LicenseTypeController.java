@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import ru.mtuci.siscatharsis.dto.internal.request.LicenseTypeRequest;
+import ru.mtuci.siscatharsis.dto.LicenseTypeCreateUpdateRequest;
 import ru.mtuci.siscatharsis.model.LicenseType;
 import ru.mtuci.siscatharsis.services.LicenseTypeService;
 import ru.mtuci.siscatharsis.utils.ApiMessage;
@@ -21,12 +21,12 @@ public class LicenseTypeController {
     // don't need read endpoints because they are public available in InfoController
 
     @PostMapping("/")
-    public ResponseEntity<?> create(@RequestBody LicenseTypeRequest requestDTO) {
+    public ResponseEntity<?> create(@RequestBody LicenseTypeCreateUpdateRequest requestDTO) {
         LicenseType licenseType = LicenseType.builder()
-                .name(requestDTO.getName())
-                .description(requestDTO.getDescription())
-                .duration(requestDTO.getDefaultDuration())
-                .deviceCount(requestDTO.getDefaultDeviceCount())
+                .name(requestDTO.name())
+                .description(requestDTO.description())
+                .duration(requestDTO.defaultDuration())
+                .deviceCount(requestDTO.defaultDeviceCount())
                 .build();
 
         licenseTypeService.create(licenseType);
@@ -35,12 +35,12 @@ public class LicenseTypeController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody LicenseTypeRequest requestDTO) {
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody LicenseTypeCreateUpdateRequest requestDTO) {
         LicenseType licenseType = LicenseType.builder()
-                .name(requestDTO.getName())
-                .description(requestDTO.getDescription())
-                .duration(requestDTO.getDefaultDuration())
-                .deviceCount(requestDTO.getDefaultDeviceCount())
+                .name(requestDTO.name())
+                .description(requestDTO.description())
+                .duration(requestDTO.defaultDuration())
+                .deviceCount(requestDTO.defaultDeviceCount())
                 .build();
 
         licenseTypeService.update(id, licenseType);

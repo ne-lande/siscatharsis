@@ -1,4 +1,4 @@
-package ru.mtuci.siscatharsis.dto.external.auth.response;
+package ru.mtuci.siscatharsis.dto.user;
 
 import lombok.*;
 
@@ -7,7 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserTokenResponse {
+public class RefreshTokenResponse {
     private String accessToken;
 
     private String token;

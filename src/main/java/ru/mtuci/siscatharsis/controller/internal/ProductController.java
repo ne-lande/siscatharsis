@@ -2,16 +2,13 @@ package ru.mtuci.siscatharsis.controller.internal;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import ru.mtuci.siscatharsis.dto.internal.request.ProductRequest;
-import ru.mtuci.siscatharsis.dto.internal.request.UserRequest;
+import ru.mtuci.siscatharsis.dto.ProductCreateUpdateRequest;
 import ru.mtuci.siscatharsis.model.Product;
-import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.services.ProductService;
 import ru.mtuci.siscatharsis.utils.ApiMessage;
 
@@ -38,9 +35,9 @@ public class ProductController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<?> createProduct(@Valid @RequestBody ProductRequest productRequest) {
+    public ResponseEntity<?> createProduct(@Valid @RequestBody ProductCreateUpdateRequest productRequest) {
         Product product = Product.builder()
-                .name(productRequest.getName())
+                .name(productRequest.name())
                 .isBlocked(productRequest.isBlocked())
                 .build();
 
@@ -50,9 +47,9 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequest productRequest) {
+    public ResponseEntity<?> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductCreateUpdateRequest productRequest) {
         Product product = Product.builder()
-                .name(productRequest.getName())
+                .name(productRequest.name())
                 .isBlocked(productRequest.isBlocked())
                 .build();
 

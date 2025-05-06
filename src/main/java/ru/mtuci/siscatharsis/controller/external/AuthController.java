@@ -9,10 +9,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import ru.mtuci.siscatharsis.dto.external.auth.request.TokenRefresh;
-import ru.mtuci.siscatharsis.dto.external.auth.request.UserLogin;
-import ru.mtuci.siscatharsis.dto.external.auth.request.UserRegister;
-import ru.mtuci.siscatharsis.dto.external.auth.response.UserTokenResponse;
+import ru.mtuci.siscatharsis.dto.user.RefreshTokenRequest;
+import ru.mtuci.siscatharsis.dto.user.LoginRequest;
+import ru.mtuci.siscatharsis.dto.user.RegisterRequest;
+import ru.mtuci.siscatharsis.dto.user.RefreshTokenResponse;
 import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.services.DeviceService;
@@ -36,15 +36,15 @@ public class AuthController {
     private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
-    public ResponseEntity<?> userRegistration(@Valid @RequestBody UserRegister userRequest) {
-        String login = userRequest.getLogin();
-        String email = userRequest.getEmail();
+    public ResponseEntity<?> userRegistration(@Valid @RequestBody RegisterRequest userRequest) {
+        String login = userRequest.login();
+        String email = userRequest.email();
 
         if (userService.existsByLoginAndEmail(login, email)) {
             return ApiMessage.BadRequest("User already exists");
         }
 
-        String passwordHash = passwordEncoder.encode(userRequest.getPassword());
+        String passwordHash = passwordEncoder.encode(userRequest.password());
 
         User user = User.builder()
                 .login(login)
@@ -56,7 +56,7 @@ public class AuthController {
 
         userService.create(user);
 
-        String macAddress = userRequest.getMacAddress();
+        String macAddress = userRequest.macAddress();
         Device device = Device.builder()
                 .user(user)
                 .macAddress(macAddress)
@@ -64,13 +64,13 @@ public class AuthController {
 
         deviceService.create(device, user);
 
-        UserTokenResponse response = sessionService.generateTokenPair((UserDetails) user, user.getId(), device.getId());
+        RefreshTokenResponse response = sessionService.generateTokenPair((UserDetails) user, user.getId(), device.getId());
 
         return ApiMessage.Success(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> userLogin(@Valid @RequestBody UserLogin userRequest) {
+    public ResponseEntity<?> userLogin(@Valid @RequestBody LoginRequest userRequest) {
         String username = userRequest.login();
         String password = userRequest.password();
 
@@ -84,14 +84,14 @@ public class AuthController {
         Device device = deviceService.requireUserDevice(macAddress, user);
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        UserTokenResponse response = sessionService.generateTokenPair(userDetails, user.getId(), device.getId());
+        RefreshTokenResponse response = sessionService.generateTokenPair(userDetails, user.getId(), device.getId());
 
         return ApiMessage.Success(response);
     }
 
     @PostMapping("/refreshToken")
-    public ResponseEntity<?> refreshToken(@RequestBody TokenRefresh userRequest) {
-        String token = userRequest.getToken();
+    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest userRequest) {
+        String token = userRequest.token();
 
         String login = jwtUtil.extractLogin(token);
         Long userId = userService.requireByLogin(login).getId();
@@ -101,7 +101,7 @@ public class AuthController {
         sessionService.rotateToken(tokenId, userId);
 
         UserDetails userDetails = userService.loadUserByUsername(login);
-        UserTokenResponse response = sessionService.generateTokenPair(userDetails, userId, deviceId);
+        RefreshTokenResponse response = sessionService.generateTokenPair(userDetails, userId, deviceId);
 
         return ApiMessage.Success(response);
     }

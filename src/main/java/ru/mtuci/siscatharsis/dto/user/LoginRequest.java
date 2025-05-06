@@ -1,8 +1,8 @@
-package ru.mtuci.siscatharsis.dto.external.auth.request;
+package ru.mtuci.siscatharsis.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record UserLogin(
+public record LoginRequest(
         @NotBlank(message = "Login is empty")
         String login,
 

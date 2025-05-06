@@ -2,14 +2,13 @@ package ru.mtuci.siscatharsis.controller.external;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import ru.mtuci.siscatharsis.dto.external.device.request.DeviceCreateRequest;
-import ru.mtuci.siscatharsis.dto.external.profile.request.ChangePasswordRequest;
+import ru.mtuci.siscatharsis.dto.device.DeviceUserAddChangeRequest;
+import ru.mtuci.siscatharsis.dto.user.PasswordChangeRequest;
 import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.utils.ApiMessage;
@@ -35,9 +34,9 @@ public class ProfileController {
     }
 
     @PostMapping("/change-password")
-    public void changePassword(Authentication authentication, @RequestBody ChangePasswordRequest changePasswordRequest) {
+    public void changePassword(Authentication authentication, @RequestBody PasswordChangeRequest changePasswordRequest) {
         User user = (User) authentication.getPrincipal();
-        String newPassword = changePasswordRequest.getPassword();
+        String newPassword = changePasswordRequest.password();
         String newPasswordHash = passwordEncoder.encode(newPassword);
         user.setPasswordHash(newPasswordHash);
 
@@ -67,7 +66,7 @@ public class ProfileController {
     }
 
     @PutMapping("/devices/{id}")
-    public ResponseEntity<?> changeMyDevice(Authentication authentication, @PathVariable Long id, @Valid @RequestBody DeviceCreateRequest deviceRequest) {
+    public ResponseEntity<?> changeMyDevice(Authentication authentication, @PathVariable Long id, @Valid @RequestBody DeviceUserAddChangeRequest deviceRequest) {
         User user = (User) authentication.getPrincipal();
 
         Device device = deviceService.findById(id);
@@ -76,8 +75,8 @@ public class ProfileController {
         }
 
         Device updateDevice = Device.builder()
-                .name(deviceRequest.getName())
-                .macAddress(deviceRequest.getMacAddress())
+                .name(deviceRequest.name())
+                .macAddress(deviceRequest.macAddress())
                 .build();
 
         deviceService.update(id, updateDevice);
@@ -104,16 +103,16 @@ public class ProfileController {
     }
 
     @PostMapping("/devices/add")
-    public ResponseEntity<?> createDevice(Authentication authentication, @Valid @RequestBody DeviceCreateRequest deviceRequest) {
+    public ResponseEntity<?> createDevice(Authentication authentication, @Valid @RequestBody DeviceUserAddChangeRequest deviceRequest) {
         User user = (User) authentication.getPrincipal();
 
-        String macAddress = deviceRequest.getMacAddress();
+        String macAddress = deviceRequest.macAddress();
 
         if (deviceService.existsUserDevice(macAddress, user)) {
             return ApiMessage.BadRequest("Such device already exists");
         }
 
-        String name = deviceRequest.getName();
+        String name = deviceRequest.name();
 
         Device device = Device.builder()
                 .user(user)

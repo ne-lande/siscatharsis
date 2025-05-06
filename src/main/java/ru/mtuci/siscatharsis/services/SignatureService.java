@@ -2,7 +2,7 @@ package ru.mtuci.siscatharsis.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.mtuci.siscatharsis.dto.external.sign.request.SignaturePatchRequest;
+import ru.mtuci.siscatharsis.dto.signature.SignaturePatchRequest;
 import ru.mtuci.siscatharsis.model.Signature;
 import ru.mtuci.siscatharsis.model.SignatureAudit;
 import ru.mtuci.siscatharsis.model.SignatureHistory;

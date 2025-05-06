@@ -1,4 +1,4 @@
-package ru.mtuci.siscatharsis.dto.external.license.response;
+package ru.mtuci.siscatharsis.dto.license;
 
 import java.util.Date;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Ticket {
+public class LicenseResponse {
     private Date currentDate;
     private int lifetime;
     private Date activationDate;
