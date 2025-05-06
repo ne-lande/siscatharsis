@@ -20,8 +20,7 @@ public class ObjectUtils {
                                 if (!Objects.equals(beforeValue, afterValue)) {
                                         capturedFields.put(field.getName(), afterValue); // or beforeValue, or both
                                 }
-                        } catch (IllegalAccessException e) {
-                                continue;
+                        } catch (IllegalAccessException ignored) {
                         }
                 }
                 return capturedFields;
@@ -47,8 +46,7 @@ public class ObjectUtils {
                                                 entityField.set(original, value);
                                                 updatedFields.put(fieldName, value);
                                         }
-                                } catch (NoSuchFieldException | IllegalAccessException e) {
-                                        continue;
+                                } catch (NoSuchFieldException | IllegalAccessException ignored) {
                                 }
                         }
                 }

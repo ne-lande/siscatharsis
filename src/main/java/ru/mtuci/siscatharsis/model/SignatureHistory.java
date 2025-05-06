@@ -5,7 +5,6 @@ import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
-import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -60,7 +59,7 @@ public class SignatureHistory {
         private Instant updatedAt;
 
         public static SignatureHistory fromSignature(Signature signature) {
-                SignatureHistory history = SignatureHistory.builder()
+                return SignatureHistory.builder()
                         .signatureId(signature.getId())
                         .threatName(signature.getThreatName())
                         .firstBytes(signature.getFirstBytes())
@@ -73,7 +72,5 @@ public class SignatureHistory {
                         .status(signature.getStatus())
                         .updatedAt(signature.getUpdatedAt())
                         .build();
-
-                return history;
         }
 }

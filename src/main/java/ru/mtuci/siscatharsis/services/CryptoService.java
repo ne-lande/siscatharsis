@@ -1,11 +1,11 @@
 package ru.mtuci.siscatharsis.services;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.mtuci.siscatharsis.model.Crypto;
 import ru.mtuci.siscatharsis.repositories.CryptoRepository;
 import ru.mtuci.siscatharsis.utils.CryptoUtil;
+import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -32,11 +32,9 @@ public class CryptoService {
         }
 
         public Crypto getCurrentKeypair() {
-                Crypto crypto = cryptoRepository.findById(1L).orElseThrow(
-                        () -> new RuntimeException("smh happened")
+                return cryptoRepository.findById(1L).orElseThrow(
+                        () -> new EntityNotFoundException("No keypair exists, call administrator")
                 );
-
-                return crypto;
         }
 
         public String signWithCurrent(String input) throws Exception {

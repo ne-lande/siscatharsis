@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.mtuci.siscatharsis.dto.user.RefreshTokenResponse;
 import ru.mtuci.siscatharsis.model.UserSession;
 import ru.mtuci.siscatharsis.repositories.UserSessionRepository;
+import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 import ru.mtuci.siscatharsis.utils.JwtUtil;
 
 import java.util.*;
@@ -40,13 +41,10 @@ public class SessionService {
                 String refreshToken = jwtUtil.createRefreshToken(userDetails, tokenId, deviceId);
                 String accessToken = jwtUtil.createAccessToken(userDetails);
 
-                return RefreshTokenResponse.builder()
-                        .token(refreshToken)
-                        .accessToken(accessToken)
-                        .build();
+                return new RefreshTokenResponse(refreshToken, accessToken);
         }
 
-        private void blockActiveSessions(Long userId) {
+        public void blockActiveSessions(Long userId) {
                 userSessionRepository.getByUserId(userId).stream().filter(
                         c -> c.getStatus() == UserSession.SessionStatus.ACTIVE
                 ).forEach(
@@ -64,16 +62,16 @@ public class SessionService {
          * если сессия активна просрачиваем ее и выдаем новую пару токенов
          */
         public void rotateToken(UUID tokenId, Long userId) {
-                UserSession userSession = userSessionRepository.findByRefreshTokenId(tokenId).orElseThrow(() -> new RuntimeException("Cant find valid session"));
+                UserSession userSession = userSessionRepository.findByRefreshTokenId(tokenId).orElseThrow(
+                        () -> new EntityNotFoundException("Cant find valid session")
+                );
 
                 switch (userSession.getStatus()) {
                         case EXPIRED -> {
                                 blockActiveSessions(userId);
                                 throw new RuntimeException("Session intercept detected.");
                         }
-                        case BLOCKED -> {
-                                throw new RuntimeException("Session was blocked by security measures");
-                        }
-                };
+                        case BLOCKED -> throw new RuntimeException("Session was blocked by security measures");
+                }
         }
 }

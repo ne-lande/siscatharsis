@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import ru.mtuci.siscatharsis.model.LicenseType;
 import ru.mtuci.siscatharsis.repositories.LicenseTypeRepository;
+import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +27,7 @@ public class LicenseTypeService {
 
     public LicenseType requireById(Long id) {
         return licenseTypeRepository.findById(id).orElseThrow(
-                () -> new IllegalArgumentException("a")
+                () -> new EntityNotFoundException("License Type not found")
         );
     }
 

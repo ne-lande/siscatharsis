@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import ru.mtuci.siscatharsis.model.Product;
 import ru.mtuci.siscatharsis.repositories.ProductRepository;
+import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -17,7 +18,7 @@ public class ProductService {
 
     public Product requireById(Long id) {
         return productRepository.findById(id).orElseThrow(
-                () -> new IllegalArgumentException("product not found by id")
+                () -> new EntityNotFoundException("Product not found")
         );
     }
 

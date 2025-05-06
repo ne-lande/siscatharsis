@@ -11,7 +11,7 @@ import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.services.DeviceService;
 import ru.mtuci.siscatharsis.services.UserService;
-import ru.mtuci.siscatharsis.utils.ApiMessage;
+import ru.mtuci.siscatharsis.utils.ApiConstructor;
 
 @RestController
 @RequestMapping("/admin/device")
@@ -21,55 +21,54 @@ public class AdminDeviceController {
 
     private final DeviceService deviceService;
     private final UserService userService;
+    private final ApiConstructor apiConstructor;
 
     @GetMapping("/")
     public ResponseEntity<?> readAllDevice(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         Page<Device> devices = deviceService.getAllDevices(page, size);
 
-        return ApiMessage.Success(devices);
+        return apiConstructor.success(devices);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> readDevice(@PathVariable Long id) {
         Device device = deviceService.requireById(id);
 
-        return ApiMessage.Success(device);
+        return apiConstructor.success(device);
     }
 
     @PostMapping("/")
     public ResponseEntity<?> createDevice(@RequestBody DeviceCreateUpdateRequest deviceRequest) {
-        User user = userService.requireById(deviceRequest.userId());
+        Device device = deviceFromDto(deviceRequest);
 
-        Device device = Device.builder()
-                .user(user)
-                .name(deviceRequest.deviceName())
-                .macAddress(deviceRequest.macAddress())
-                .build();
+        deviceService.create(device);
 
-        deviceService.create(device, user);
-
-        return ApiMessage.Success(device);
+        return apiConstructor.success(device);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateDevice(@PathVariable Long id, @RequestBody DeviceCreateUpdateRequest deviceRequest) {
-        User user = userService.requireById(deviceRequest.userId());
-
-        Device device = Device.builder()
-                .user(user)
-                .name(deviceRequest.deviceName())
-                .macAddress(deviceRequest.macAddress())
-                .build();
+        Device device = deviceFromDto(deviceRequest);
 
         deviceService.update(id, device);
 
-        return ApiMessage.Success(device);
+        return apiConstructor.success(device);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         deviceService.delete(id);
 
-        return ApiMessage.Success(id);
+        return apiConstructor.success(id);
+    }
+
+    private Device deviceFromDto(DeviceCreateUpdateRequest dto) {
+        User user = userService.requireById(dto.userId());
+
+        return Device.builder()
+                .user(user)
+                .name(dto.deviceName())
+                .macAddress(dto.macAddress())
+                .build();
     }
 }

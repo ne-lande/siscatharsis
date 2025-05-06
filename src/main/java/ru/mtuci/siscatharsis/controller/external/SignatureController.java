@@ -7,10 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.mtuci.siscatharsis.dto.signature.SignatureFetchUUIDrequest;
 import ru.mtuci.siscatharsis.model.Signature;
-import ru.mtuci.siscatharsis.services.CryptoService;
 import ru.mtuci.siscatharsis.services.SignatureService;
-import ru.mtuci.siscatharsis.services.UserService;
-import ru.mtuci.siscatharsis.utils.ApiMessage;
+import ru.mtuci.siscatharsis.utils.ApiConstructor;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,21 +19,20 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SignatureController {
         private final SignatureService signatureService;
-        private final UserService userService;
-        private final CryptoService cryptoService;
+        private final ApiConstructor apiConstructor;
 
         @GetMapping("/all")
         public ResponseEntity<?> fetchAll() {
                 List<Signature> response = signatureService.getAll();
 
-                return ApiMessage.Success(response);
+                return apiConstructor.success(response);
         }
 
         @GetMapping("/diff/{dateTime}")
         public ResponseEntity<?> fetchDiff(@PathVariable Instant dateTime) {
                 List<Signature> response = signatureService.getDiff(dateTime);
 
-                return ApiMessage.Success(response);
+                return apiConstructor.success(response);
         }
 
         @PostMapping("/guid")
@@ -44,15 +41,15 @@ public class SignatureController {
 
                 List<Signature> response = signatureService.getByUUIDS(guidList);
 
-                return ApiMessage.Success(response);
+                return apiConstructor.success(response);
         }
 
         @GetMapping(value = "/download", produces = MediaType.MULTIPART_MIXED_VALUE)
-        public ResponseEntity<?> download(@Valid @RequestBody SignatureFetchUUIDrequest signatureFetchUUIDrequest) throws Exception {
+        public ResponseEntity<?> download(@Valid @RequestBody SignatureFetchUUIDrequest signatureFetchUUIDrequest) {
                 List<UUID> guidList = signatureFetchUUIDrequest.uuidList();
 
                 List<Signature> signatureList = signatureService.getByUUIDS(guidList);
 
-                return ApiMessage.Success(signatureList);
+                return apiConstructor.success(signatureList);
         }
 }

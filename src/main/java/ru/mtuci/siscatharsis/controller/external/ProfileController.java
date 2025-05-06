@@ -11,7 +11,8 @@ import ru.mtuci.siscatharsis.dto.device.DeviceUserAddChangeRequest;
 import ru.mtuci.siscatharsis.dto.user.PasswordChangeRequest;
 import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.model.User;
-import ru.mtuci.siscatharsis.utils.ApiMessage;
+import ru.mtuci.siscatharsis.services.SessionService;
+import ru.mtuci.siscatharsis.utils.ApiConstructor;
 import ru.mtuci.siscatharsis.services.DeviceService;
 import ru.mtuci.siscatharsis.services.UserService;
 
@@ -24,24 +25,24 @@ public class ProfileController {
 
     private final UserService userService;
     private final DeviceService deviceService;
-    private final PasswordEncoder passwordEncoder;
+    private final SessionService sessionService;
+    private final ApiConstructor apiConstructor;
 
     @GetMapping("/me")
     public ResponseEntity<?> myProfile(Authentication authentication) {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-        return ApiMessage.Success(userDetails);
+        return apiConstructor.success(userDetails);
     }
 
     @PostMapping("/change-password")
     public void changePassword(Authentication authentication, @RequestBody PasswordChangeRequest changePasswordRequest) {
         User user = (User) authentication.getPrincipal();
-        String newPassword = changePasswordRequest.password();
-        String newPasswordHash = passwordEncoder.encode(newPassword);
-        user.setPasswordHash(newPasswordHash);
+        Long userId = user.getId();
 
-        // тут еще надо все сессии просрочить
-        userService.update(user.getId(), user);
+        sessionService.blockActiveSessions(userId);
+
+        userService.update(userId, user, changePasswordRequest.password());
     }
 
     @GetMapping("/devices")
@@ -50,7 +51,7 @@ public class ProfileController {
 
         List<Device> devices = deviceService.getByUserId(user.getId());
 
-        return ApiMessage.Success(devices);
+        return apiConstructor.success(devices);
     }
 
     @GetMapping("/devices/{id}")
@@ -59,10 +60,10 @@ public class ProfileController {
 
         Device device = deviceService.findById(id);
         if (device.getUser().equals(user)) {
-            return ApiMessage.Success(device);
+            return apiConstructor.success(device);
         }
 
-        return ApiMessage.BadRequest("Not yours");
+        return apiConstructor.badRequest("Not yours");
     }
 
     @PutMapping("/devices/{id}")
@@ -71,7 +72,7 @@ public class ProfileController {
 
         Device device = deviceService.findById(id);
         if (!device.getUser().equals(user)) {
-            return ApiMessage.BadRequest("Not yours");
+            return apiConstructor.badRequest("Not yours");
         }
 
         Device updateDevice = Device.builder()
@@ -81,7 +82,7 @@ public class ProfileController {
 
         deviceService.update(id, updateDevice);
 
-        return ApiMessage.Secret("ggg");
+        return apiConstructor.success(device);
     }
 
     @DeleteMapping("/devices/{id}")
@@ -91,7 +92,7 @@ public class ProfileController {
         List<Device> userDevices = deviceService.getByUserId(user.getId());
 
         if (userDevices.size() == 1) {
-            return ApiMessage.BadRequest("You cant delete your last device");
+            return apiConstructor.badRequest("You cant delete your last device");
         }
 
         userDevices.stream()
@@ -99,7 +100,7 @@ public class ProfileController {
                 .findFirst()
                 .ifPresent(d -> deviceService.delete(id));
 
-        return ApiMessage.Success(id);
+        return apiConstructor.success(id);
     }
 
     @PostMapping("/devices/add")
@@ -109,19 +110,17 @@ public class ProfileController {
         String macAddress = deviceRequest.macAddress();
 
         if (deviceService.existsUserDevice(macAddress, user)) {
-            return ApiMessage.BadRequest("Such device already exists");
+            return apiConstructor.badRequest("Such device already exists");
         }
-
-        String name = deviceRequest.name();
 
         Device device = Device.builder()
                 .user(user)
-                .name(name)
+                .name(deviceRequest.name())
                 .macAddress(macAddress)
                 .build();
 
-        deviceService.create(device, user);
+        deviceService.create(device);
 
-        return ApiMessage.Success(device);
+        return apiConstructor.success(device);
     }
 }

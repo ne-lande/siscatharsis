@@ -1,6 +1,5 @@
 package ru.mtuci.siscatharsis.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 

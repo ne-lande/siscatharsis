@@ -3,7 +3,6 @@ package ru.mtuci.siscatharsis.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.annotation.CreatedBy;
 
 import java.time.Instant;
 import java.util.UUID;

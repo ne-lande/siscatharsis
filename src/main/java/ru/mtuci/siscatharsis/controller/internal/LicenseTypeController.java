@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.mtuci.siscatharsis.dto.LicenseTypeCreateUpdateRequest;
 import ru.mtuci.siscatharsis.model.LicenseType;
 import ru.mtuci.siscatharsis.services.LicenseTypeService;
-import ru.mtuci.siscatharsis.utils.ApiMessage;
+import ru.mtuci.siscatharsis.utils.ApiConstructor;
 
 @RestController
 @RequestMapping("/admin/license-type")
@@ -17,41 +17,41 @@ import ru.mtuci.siscatharsis.utils.ApiMessage;
 public class LicenseTypeController {
 
     private final LicenseTypeService licenseTypeService;
+    private final ApiConstructor apiConstructor;
 
     // don't need read endpoints because they are public available in InfoController
 
     @PostMapping("/")
-    public ResponseEntity<?> create(@RequestBody LicenseTypeCreateUpdateRequest requestDTO) {
-        LicenseType licenseType = LicenseType.builder()
-                .name(requestDTO.name())
-                .description(requestDTO.description())
-                .duration(requestDTO.defaultDuration())
-                .deviceCount(requestDTO.defaultDeviceCount())
-                .build();
+    public ResponseEntity<?> create(@RequestBody LicenseTypeCreateUpdateRequest licenseTypeRequest) {
+        LicenseType licenseType = licenseTypeFromDto(licenseTypeRequest);
 
         licenseTypeService.create(licenseType);
 
-        return ApiMessage.Success(licenseType);
+        return apiConstructor.success(licenseType);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody LicenseTypeCreateUpdateRequest requestDTO) {
-        LicenseType licenseType = LicenseType.builder()
-                .name(requestDTO.name())
-                .description(requestDTO.description())
-                .duration(requestDTO.defaultDuration())
-                .deviceCount(requestDTO.defaultDeviceCount())
-                .build();
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody LicenseTypeCreateUpdateRequest licenseTypeRequest) {
+        LicenseType licenseType = licenseTypeFromDto(licenseTypeRequest);
 
         licenseTypeService.update(id, licenseType);
 
-        return ApiMessage.Success(licenseType);
+        return apiConstructor.success(licenseType);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         licenseTypeService.delete(id);
 
-        return ApiMessage.Success(id);
+        return apiConstructor.success(id);
+    }
+
+    private LicenseType licenseTypeFromDto(LicenseTypeCreateUpdateRequest dto) {
+        return LicenseType.builder()
+                .name(dto.name())
+                .description(dto.description())
+                .duration(dto.defaultDuration())
+                .deviceCount(dto.defaultDeviceCount())
+                .build();
     }
 }

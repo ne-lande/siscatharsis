@@ -1,7 +1,6 @@
 package ru.mtuci.siscatharsis.services;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -10,7 +9,7 @@ import org.springframework.stereotype.Service;
 import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.repositories.DeviceRepository;
-import ru.mtuci.siscatharsis.utils.ApiMessage;
+import ru.mtuci.siscatharsis.utils.EntityAlreadyExistException;
 import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 
 import java.util.List;
@@ -22,10 +21,9 @@ public class DeviceService {
 
     // Предполагается что девайс ТОЧНО будет найден, любое другое поведение -> хуйня
     public Device requireUserDevice(String macAddress, User user) {
-        return deviceRepository.findByMacAddressAndUser(macAddress, user)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Device not found"
-                ));
+        return deviceRepository.findByMacAddressAndUser(macAddress, user).orElseThrow(
+                () -> new EntityNotFoundException("Device not found")
+        );
     }
 
     public Boolean existsUserDevice(String macAddress, User user) {
@@ -65,11 +63,12 @@ public class DeviceService {
 
     // CRUD
 
-    public Device create(Device device, User user) {
+    public Device create(Device device) {
         String macAddress = device.getMacAddress();
 
+        User user = device.getUser();
         if (existsUserDevice(macAddress, user)) {
-            throw new IllegalArgumentException("Device already exists");
+            throw new EntityAlreadyExistException("Device already exists");
         }
 
         return deviceRepository.save(device);
@@ -80,7 +79,7 @@ public class DeviceService {
         User user = newDevice.getUser();
 
         if (existsUserDevice(macAddress, user)) {
-            throw new IllegalArgumentException("Data collision");
+            throw new EntityAlreadyExistException("Device with same mac already exists");
         }
 
         Device device = requireById(id);

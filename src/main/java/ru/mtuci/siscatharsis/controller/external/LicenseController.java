@@ -14,10 +14,10 @@ import ru.mtuci.siscatharsis.model.License;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.services.DeviceService;
 import ru.mtuci.siscatharsis.services.LicenseService;
-import ru.mtuci.siscatharsis.services.UserService;
-import ru.mtuci.siscatharsis.utils.ApiMessage;
+import ru.mtuci.siscatharsis.utils.ApiConstructor;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,18 +25,18 @@ import java.util.UUID;
 @RequestMapping("/license")
 @RequiredArgsConstructor
 public class LicenseController {
-
-    private final UserService userService;
     private final DeviceService deviceService;
     private final LicenseService licenseService;
+    private final ApiConstructor apiConstructor;
 
     @GetMapping("/current")
     public ResponseEntity<?> getCurrentLicense(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
 
         // TODO: yet to be implemented
+        // платон, это на тебе
 
-        return ApiMessage.Secret("hoi");
+        return apiConstructor.success("hoi");
     }
 
     @PostMapping("/info")
@@ -49,13 +49,12 @@ public class LicenseController {
         List<LicenseResponse> tickets = new ArrayList<>();
 
         for (License activeLicense : activeLicenses) {
-            tickets.add(licenseService.generateTicket(activeLicense, device));
+            tickets.add(generateTicket(activeLicense, device));
         }
 
-        return ApiMessage.Success(tickets);
+        return apiConstructor.successSigned(tickets);
     }
 
-    // TODO: extract ticket generation in controller
     @PostMapping("/activate")
     public ResponseEntity<?> activateLicense(Authentication authentication, @Valid @RequestBody LicenseActivationRequest licenseActivationRequest) throws Exception {
         UUID activationCode = licenseActivationRequest.activationCode();
@@ -64,18 +63,18 @@ public class LicenseController {
 
         String macAddress = licenseActivationRequest.macAddress();
 
-        Device device = deviceService.registerOrUpdateDevice(licenseActivationRequest.macAddress(), user);
+        Device device = deviceService.registerOrUpdateDevice(macAddress, user);
 
-        LicenseResponse ticket = licenseService.activateLicense(
+        License license = licenseService.activateLicense(
                 licenseActivationRequest.activationCode(),
                 device, user
         );
 
-        return ApiMessage.Success(ticket);
+        return apiConstructor.successSigned(generateTicket(license, device));
     }
 
-    @PostMapping("/update")
-    public ResponseEntity<?> updateLicense(Authentication authentication, @Valid @RequestBody LicenseRenewalRequest licenseUpdateRequest) throws Exception {
+    @PostMapping("/renew")
+    public ResponseEntity<?> renewLicense(Authentication authentication, @Valid @RequestBody LicenseRenewalRequest licenseUpdateRequest) throws Exception {
         User user = (User) authentication.getPrincipal();
 
         String macAddress = licenseUpdateRequest.macAddress();
@@ -84,8 +83,20 @@ public class LicenseController {
 
         UUID licenseCode = licenseUpdateRequest.licenseCode();
 
-        LicenseResponse ticket = licenseService.updateExistentLicense(licenseCode, user, device);
+        License license = licenseService.renewExistentLicense(licenseCode, user, device);
 
-        return ApiMessage.Success(ticket);
+        return apiConstructor.successSigned(generateTicket(license, device));
+    }
+
+    private LicenseResponse generateTicket(License license, Device device) {
+        return new LicenseResponse(
+                new Date(),
+                license.getDuration(),
+                license.getFirstActivationDate(),
+                license.getEndingDate(),
+                device.getUser().getId(),
+                device.getId(),
+                license.getIsBlocked()
+        );
     }
 }

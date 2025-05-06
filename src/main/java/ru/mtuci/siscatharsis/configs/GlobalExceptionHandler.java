@@ -1,41 +1,32 @@
 package ru.mtuci.siscatharsis.configs;
 
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-import ru.mtuci.siscatharsis.utils.ApiMessage;
+import ru.mtuci.siscatharsis.utils.ApiConstructor;
 import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 import ru.mtuci.siscatharsis.utils.LicenseException;
 
 @ControllerAdvice
+@RequiredArgsConstructor
 public class GlobalExceptionHandler {
-    @ExceptionHandler({EntityNotFoundException.class})
-    public ResponseEntity<?> handleEntityNotFoundException(EntityNotFoundException exception) {
-        return ApiMessage.ServerError(
-            exception.getMessage());
-    }
 
-    @ExceptionHandler({RuntimeException.class})
-    public ResponseEntity<?> handleRuntimeException(RuntimeException exception) {
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(exception.getMessage());
+    private final ApiConstructor apiConstructor;
+
+    @ExceptionHandler({
+            EntityNotFoundException.class,
+            RuntimeException.class,
+            UsernameNotFoundException.class
+    })
+    public ResponseEntity<?> handleServerExceptions(Exception exception) {
+        return apiConstructor.serverError(exception.getMessage());
     }
 
     @ExceptionHandler({LicenseException.class})
-    public ResponseEntity<?> handleLicenseException(LicenseException exception) {
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(exception.getMessage());
-    }
-
-    @ExceptionHandler({UsernameNotFoundException.class})
-    public ResponseEntity<?> handleUsernameException(UsernameNotFoundException exception) {
-        return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(exception.getMessage());
+    public ResponseEntity<?> handleBadRequest(Exception exception) {
+        return apiConstructor.badRequest(exception.getMessage());
     }
 }

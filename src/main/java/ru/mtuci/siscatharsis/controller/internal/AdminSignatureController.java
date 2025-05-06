@@ -10,7 +10,7 @@ import ru.mtuci.siscatharsis.dto.signature.SignaturePatchRequest;
 import ru.mtuci.siscatharsis.model.Signature;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.services.SignatureService;
-import ru.mtuci.siscatharsis.utils.ApiMessage;
+import ru.mtuci.siscatharsis.utils.ApiConstructor;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -20,6 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AdminSignatureController {
         private final SignatureService signatureService;
+        private final ApiConstructor apiConstructor;
 
         @PostMapping("/")
         public ResponseEntity<?> addSignature(Authentication authentication, @Valid @RequestBody SignatureCreateRequest signatureCreateRequest) {
@@ -39,14 +40,14 @@ public class AdminSignatureController {
 
                 signatureService.create(signature, userId);
 
-                return ApiMessage.Success(signature);
+                return apiConstructor.success(signature);
         }
 
         @PostMapping("/{guid}")
         public ResponseEntity<?> markSignatureAsDelete(@PathVariable UUID guid) {
                 Signature response = signatureService.markSignature(guid, Signature.Status.DELETED);
 
-                return ApiMessage.Success(response);
+                return apiConstructor.success(response);
         }
 
         // TODO: implement
@@ -57,6 +58,6 @@ public class AdminSignatureController {
 
                 Signature response = signatureService.patch(guid, signaturePatchRequest, userId);
 
-                return ApiMessage.Success(response);
+                return apiConstructor.success(response);
         }
 }

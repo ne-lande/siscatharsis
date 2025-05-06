@@ -7,16 +7,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.repositories.UserRepository;
+import ru.mtuci.siscatharsis.utils.EntityAlreadyExistException;
+import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 
 @Service
 @RequiredArgsConstructor
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
@@ -40,7 +44,7 @@ public class UserService implements UserDetailsService {
 
     public User requireById(Long id) {
         return userRepository.findById(id).orElseThrow(
-                () -> new UsernameNotFoundException("User not found by id")
+                () -> new EntityNotFoundException("User not found by id")
         );
     }
 
@@ -48,25 +52,37 @@ public class UserService implements UserDetailsService {
         return userRepository.existsByLoginAndEmail(login, email);
     }
 
-    public User create(User user) {
+    public User create(User user, String password) {
         String login = user.getLogin();
         String email = user.getEmail();
 
         if (existsByLoginAndEmail(login, email)) {
-            throw new IllegalArgumentException("Login already assigned");
+            throw new EntityAlreadyExistException("Login already assigned");
         }
+
+        String passwordHash = passwordEncoder.encode(password);
+        user.setPasswordHash(passwordHash);
 
         userRepository.save(user);
 
         return user;
     }
 
-    public User update(Long id, User newUser) {
+    public User update(Long id, User newUser, String password) {
         User user = requireById(id);
 
-        user.setLogin(newUser.getLogin());
-        user.setEmail(newUser.getEmail());
-        user.setPasswordHash(newUser.getPasswordHash());
+        String login = newUser.getLogin();
+        String email = newUser.getEmail();
+
+        if (existsByLoginAndEmail(login, email)) {
+            throw new EntityAlreadyExistException("Login already assigned");
+        }
+
+        String passwordHash = passwordEncoder.encode(password);
+
+        user.setLogin(login);
+        user.setEmail(email);
+        user.setPasswordHash(passwordHash);
         user.setRole(newUser.getRole());
 
         userRepository.save(user);

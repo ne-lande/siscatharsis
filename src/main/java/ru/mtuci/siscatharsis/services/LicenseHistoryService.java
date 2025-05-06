@@ -8,7 +8,6 @@ import ru.mtuci.siscatharsis.model.LicenseHistory;
 import ru.mtuci.siscatharsis.model.User;
 import ru.mtuci.siscatharsis.repositories.LicenseHistoryRepository;
 
-import java.time.Instant;
 import java.util.Date;
 
 @Service
@@ -22,13 +21,11 @@ public class LicenseHistoryService {
         }
 
         private LicenseHistory create(License license, User issuer) {
-                LicenseHistory licenseHistory = LicenseHistory.builder()
+                return LicenseHistory.builder()
                         .license(license)
                         .user(issuer)
                         .changeDate(new Date())
                         .build();
-
-                return licenseHistory;
         }
 
         // Admin actions

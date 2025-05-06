@@ -1,14 +1,7 @@
 package ru.mtuci.siscatharsis.dto.user;
 
-import lombok.*;
-
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class RefreshTokenResponse {
-    private String accessToken;
-
-    private String token;
-}
+// кто то забыл
+public record RefreshTokenResponse (
+    String accessToken,
+    String token
+) {}

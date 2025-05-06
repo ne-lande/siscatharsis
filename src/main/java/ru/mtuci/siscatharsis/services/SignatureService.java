@@ -9,6 +9,7 @@ import ru.mtuci.siscatharsis.model.SignatureHistory;
 import ru.mtuci.siscatharsis.repositories.SignatureAuditRepository;
 import ru.mtuci.siscatharsis.repositories.SignatureHistoryRepository;
 import ru.mtuci.siscatharsis.repositories.SignatureRepository;
+import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
 import ru.mtuci.siscatharsis.utils.ObjectUtils;
 
 import java.time.Instant;
@@ -60,7 +61,7 @@ public class SignatureService {
 
         public Signature requireById(UUID id) {
                 return signatureRepository.findById(id).orElseThrow(
-                        () -> new IllegalArgumentException("Signature not found")
+                        () -> new EntityNotFoundException("Signature not found")
                 );
         }
         public Signature create(Signature signature, Long issuerId) {

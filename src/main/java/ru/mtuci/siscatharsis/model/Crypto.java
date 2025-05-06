@@ -8,7 +8,6 @@ import lombok.*;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.time.Instant;
 
 @Entity
 @Getter
