@@ -3,7 +3,7 @@ package ru.mtuci.siscatharsis.repositories;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import ru.mtuci.siscatharsis.model.Device;
-import ru.mtuci.siscatharsis.model.User;
+import ru.mtuci.siscatharsis.model.user.User;
 
 import java.util.Optional;
 import java.util.List;

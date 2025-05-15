@@ -3,10 +3,10 @@ package ru.mtuci.siscatharsis.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.mtuci.siscatharsis.model.DeviceLicense;
-import ru.mtuci.siscatharsis.model.License;
+import ru.mtuci.siscatharsis.model.license.License;
 import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.repositories.DeviceLicenseRepository;
-import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
+import ru.mtuci.siscatharsis.utils.exceptions.EntityNotFoundException;
 
 import java.util.List;
 import java.util.Date;
@@ -17,6 +17,7 @@ public class DeviceLicenseService {
 
     private final DeviceLicenseRepository deviceLicenseRepository;
 
+    @SuppressWarnings("UnusedReturnValue")
     public DeviceLicense createDeviceLicense(License license, Device device) {
         DeviceLicense deviceLicense = new DeviceLicense();
         deviceLicense.setDevice(device);

@@ -2,8 +2,8 @@ package ru.mtuci.siscatharsis.dto.signature;
 
 public record SignatureCreateRequest (
         String threatName,
-        Byte firstBytes,
-        String remainderHash,
+        byte[] firstBytes,
+        byte[] remainderHash,
         int remainderLength,
         String fileType,
         int offsetStart,

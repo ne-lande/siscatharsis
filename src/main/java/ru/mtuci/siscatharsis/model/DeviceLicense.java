@@ -3,6 +3,7 @@ package ru.mtuci.siscatharsis.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
+import ru.mtuci.siscatharsis.model.license.License;
 
 import java.util.Date;
 
@@ -13,8 +14,9 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(
-name = "device_licenses",
-uniqueConstraints = @UniqueConstraint(columnNames = {"license_id", "device_id"}))
+        name = "device_licenses",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"license_id", "device_id"})
+)
 public class DeviceLicense {
 
     @Id

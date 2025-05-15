@@ -2,7 +2,7 @@ package ru.mtuci.siscatharsis.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import ru.mtuci.siscatharsis.model.User;
+import ru.mtuci.siscatharsis.model.user.User;
 
 public record UserCreateUpdateRequest(
     @NotBlank(message = "Login is empty")

@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.mtuci.siscatharsis.model.Crypto;
 import ru.mtuci.siscatharsis.repositories.CryptoRepository;
 import ru.mtuci.siscatharsis.utils.CryptoUtil;
-import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
+import ru.mtuci.siscatharsis.utils.exceptions.EntityNotFoundException;
 
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -37,9 +37,10 @@ public class CryptoService {
                 );
         }
 
-        public String signWithCurrent(String input) throws Exception {
+        public byte[] signWithCurrent(byte[] byteArray) throws Exception {
                 Crypto crypto = this.getCurrentKeypair();
                 PrivateKey privateKey = crypto.getPrivateKey();
-                return CryptoUtil.sign(privateKey, input);
+
+                return CryptoUtil.sign(privateKey, byteArray);
         }
 }

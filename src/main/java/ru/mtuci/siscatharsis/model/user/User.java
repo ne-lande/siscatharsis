@@ -1,0 +1,82 @@
+package ru.mtuci.siscatharsis.model.user;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import ru.mtuci.siscatharsis.model.Device;
+import ru.mtuci.siscatharsis.model.license.License;
+import ru.mtuci.siscatharsis.model.license.LicenseHistory;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+@Entity
+@Getter
+@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Table(name = "users")
+@JsonIgnoreProperties({"licenses", "devices"})
+public class User implements UserDetails {
+
+    public enum Role {
+        ROLE_USER,
+        ROLE_ADMIN
+    }
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+
+    @NotBlank(message = "Login cant be empty")
+    @Column(name = "login", nullable = false)
+    private String login;
+
+    @NotBlank(message = "Password cant be empty")
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
+    @Column(name = "email")
+    private String email;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
+    private Role role;
+
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<License> licenses;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<Device> devices;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<LicenseHistory> licenseHistories;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(new SimpleGrantedAuthority(role.toString()));
+    }
+
+    @Override
+    public String getPassword() {
+        return passwordHash;
+    }
+
+    @Override
+    public String getUsername() {
+        return login;
+    }
+}

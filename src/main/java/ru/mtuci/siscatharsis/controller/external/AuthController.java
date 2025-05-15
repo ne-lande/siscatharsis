@@ -7,22 +7,22 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import ru.mtuci.siscatharsis.dto.user.RefreshTokenRequest;
 import ru.mtuci.siscatharsis.dto.user.LoginRequest;
 import ru.mtuci.siscatharsis.dto.user.RegisterRequest;
 import ru.mtuci.siscatharsis.dto.user.RefreshTokenResponse;
 import ru.mtuci.siscatharsis.model.Device;
-import ru.mtuci.siscatharsis.model.User;
+import ru.mtuci.siscatharsis.model.user.User;
 import ru.mtuci.siscatharsis.services.DeviceService;
-import ru.mtuci.siscatharsis.services.SessionService;
-import ru.mtuci.siscatharsis.services.UserService;
-import ru.mtuci.siscatharsis.utils.ApiConstructor;
+import ru.mtuci.siscatharsis.services.user.SessionService;
+import ru.mtuci.siscatharsis.services.user.UserService;
+import ru.mtuci.siscatharsis.utils.ResponseUtils;
 import ru.mtuci.siscatharsis.utils.JwtUtil;
 
 import java.util.UUID;
 
+@SuppressWarnings("unused")
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -32,7 +32,7 @@ public class AuthController {
     private final SessionService sessionService;
     private final DeviceService deviceService;
     private final AuthenticationManager authenticationManager;
-    private final ApiConstructor apiConstructor;
+    private final ResponseUtils responseUtils;
     private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
@@ -41,7 +41,7 @@ public class AuthController {
         String email = userRequest.email();
 
         if (userService.existsByLoginAndEmail(login, email)) {
-            return apiConstructor.badRequest("User already exists");
+            return responseUtils.badRequest("User already exists");
         }
 
         User user = User.builder()
@@ -63,7 +63,7 @@ public class AuthController {
 
         RefreshTokenResponse response = sessionService.generateTokenPair(user, user.getId(), device.getId());
 
-        return apiConstructor.success(response);
+        return responseUtils.success(response);
     }
 
     @PostMapping("/login")
@@ -73,7 +73,7 @@ public class AuthController {
 
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
         if (!authentication.isAuthenticated()) {
-            return apiConstructor.badRequest("Invalid credentials");
+            return responseUtils.badRequest("Invalid credentials");
         }
 
         String macAddress = userRequest.macAddress();
@@ -83,7 +83,7 @@ public class AuthController {
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         RefreshTokenResponse response = sessionService.generateTokenPair(userDetails, user.getId(), device.getId());
 
-        return apiConstructor.success(response);
+        return responseUtils.success(response);
     }
 
     @PostMapping("/refreshToken")
@@ -100,6 +100,6 @@ public class AuthController {
         UserDetails userDetails = userService.loadUserByUsername(login);
         RefreshTokenResponse response = sessionService.generateTokenPair(userDetails, userId, deviceId);
 
-        return apiConstructor.success(response);
+        return responseUtils.success(response);
     }
 }

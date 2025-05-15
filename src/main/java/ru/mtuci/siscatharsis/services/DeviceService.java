@@ -7,10 +7,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import ru.mtuci.siscatharsis.model.Device;
-import ru.mtuci.siscatharsis.model.User;
+import ru.mtuci.siscatharsis.model.user.User;
 import ru.mtuci.siscatharsis.repositories.DeviceRepository;
-import ru.mtuci.siscatharsis.utils.EntityAlreadyExistException;
-import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
+import ru.mtuci.siscatharsis.utils.exceptions.EntityAlreadyExistException;
+import ru.mtuci.siscatharsis.utils.exceptions.EntityNotFoundException;
 
 import java.util.List;
 
@@ -63,6 +63,7 @@ public class DeviceService {
 
     // CRUD
 
+    @SuppressWarnings("UnusedReturnValue")
     public Device create(Device device) {
         String macAddress = device.getMacAddress();
 
@@ -74,6 +75,7 @@ public class DeviceService {
         return deviceRepository.save(device);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public Device update(Long id, Device newDevice) {
         String macAddress = newDevice.getMacAddress();
         User user = newDevice.getUser();

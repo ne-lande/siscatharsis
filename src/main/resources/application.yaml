@@ -20,7 +20,7 @@ management.endpoints.web.exposure.include: health
 
 server:
   contextPath: /
-  port: 12321
+  port: 8443
   ssl:
     enabled: true
     key-store: classpath:${KEY_STORE_FILE}

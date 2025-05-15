@@ -7,23 +7,31 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import ru.mtuci.siscatharsis.dto.signature.SignatureCreateRequest;
 import ru.mtuci.siscatharsis.dto.signature.SignaturePatchRequest;
-import ru.mtuci.siscatharsis.model.Signature;
-import ru.mtuci.siscatharsis.model.User;
-import ru.mtuci.siscatharsis.services.SignatureService;
-import ru.mtuci.siscatharsis.utils.ApiConstructor;
+import ru.mtuci.siscatharsis.model.signature.Signature;
+import ru.mtuci.siscatharsis.model.signature.SignatureAudit;
+import ru.mtuci.siscatharsis.model.signature.SignatureHistory;
+import ru.mtuci.siscatharsis.model.user.User;
+import ru.mtuci.siscatharsis.services.signature.SignatureAuditService;
+import ru.mtuci.siscatharsis.services.signature.SignatureHistoryService;
+import ru.mtuci.siscatharsis.services.signature.SignatureService;
+import ru.mtuci.siscatharsis.utils.ResponseUtils;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
+@SuppressWarnings("unused")
 @RestController
 @RequestMapping("/admin/signature")
 @RequiredArgsConstructor
 public class AdminSignatureController {
         private final SignatureService signatureService;
-        private final ApiConstructor apiConstructor;
+        private final SignatureAuditService signatureAuditService;
+        private final SignatureHistoryService signatureHistoryService;
+        private final ResponseUtils responseUtils;
 
         @PostMapping("/")
-        public ResponseEntity<?> addSignature(Authentication authentication, @Valid @RequestBody SignatureCreateRequest signatureCreateRequest) {
+        public ResponseEntity<?> addSignature(Authentication authentication, @Valid @RequestBody SignatureCreateRequest signatureCreateRequest) throws Exception {
                 User user = (User) authentication.getPrincipal();
                 Long userId = user.getId();
 
@@ -40,24 +48,45 @@ public class AdminSignatureController {
 
                 signatureService.create(signature, userId);
 
-                return apiConstructor.success(signature);
+                return responseUtils.success(signature);
         }
 
         @PostMapping("/{guid}")
-        public ResponseEntity<?> markSignatureAsDelete(@PathVariable UUID guid) {
-                Signature response = signatureService.markSignature(guid, Signature.Status.DELETED);
+        public ResponseEntity<?> markSignatureAsDelete(Authentication authentication, @PathVariable UUID guid) {
+                User user = (User) authentication.getPrincipal();
+                Long userId = user.getId();
 
-                return apiConstructor.success(response);
+                Signature response = signatureService.deleteSignature(guid, userId);
+
+                return responseUtils.success(response);
         }
 
         // TODO: implement
         @PatchMapping("/{guid}")
-        public ResponseEntity<?> patchSignature(Authentication authentication, @PathVariable UUID guid, @Valid @RequestBody SignaturePatchRequest signaturePatchRequest) throws IllegalAccessException {
+        public ResponseEntity<?> patchSignature(Authentication authentication, @PathVariable UUID guid, @Valid @RequestBody SignaturePatchRequest signaturePatchRequest) throws Exception {
                 User user = (User) authentication.getPrincipal();
                 Long userId = user.getId();
 
                 Signature response = signatureService.patch(guid, signaturePatchRequest, userId);
 
-                return apiConstructor.success(response);
+                return responseUtils.success(response);
+        }
+
+        @GetMapping("/audit/{id}")
+        public ResponseEntity<?> getAuditFor(@PathVariable UUID guid) {
+                Signature signature = signatureService.requireById(guid);
+
+                List<SignatureAudit> response = signatureAuditService.getFor(signature);
+
+                return responseUtils.success(response);
+        }
+
+        @GetMapping("/history/{id}")
+        public ResponseEntity<?> getHistoryFor(@PathVariable UUID guid) {
+                Signature signature = signatureService.requireById(guid);
+
+                List<SignatureHistory> response = signatureHistoryService.getFor(signature);
+
+                return responseUtils.success(response);
         }
 }

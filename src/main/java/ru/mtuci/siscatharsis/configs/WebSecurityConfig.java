@@ -11,12 +11,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import ru.mtuci.siscatharsis.utils.JwtRequestFilter;
 
+@SuppressWarnings("unused")
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity()
@@ -24,30 +23,29 @@ import ru.mtuci.siscatharsis.utils.JwtRequestFilter;
 public class WebSecurityConfig {
 
     private static final String[] PUBLIC_ENDPOINTS = {
-        "/auth/**", "/info/**", "/actuator/**"
+        "/auth/**", "/info/**", "/actuator/**", "/v3/**", "/swagger-ui/**"
     };
 
     private final JwtRequestFilter jwtRequestFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity)
-        throws Exception {
-        httpSecurity
-            .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(authorize ->
-                authorize
-                    .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                    .requestMatchers(HttpMethod.PATCH, "/api/signatures/**").authenticated()
-                    .anyRequest().authenticated()
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity.csrf(AbstractHttpConfigurer::disable);
 
-            )
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .addFilterBefore(
-                jwtRequestFilter,
-                UsernamePasswordAuthenticationFilter.class
-            );
+        httpSecurity.authorizeHttpRequests(a -> a
+                .requestMatchers(PUBLIC_ENDPOINTS)
+                .permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/api/signatures/**")
+                .authenticated()
+                .anyRequest()
+                .authenticated()
+        );
+
+        httpSecurity.sessionManagement(s -> s.
+                sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        );
+
+        httpSecurity.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
     }

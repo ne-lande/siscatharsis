@@ -9,7 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import ru.mtuci.siscatharsis.services.UserService;
+import ru.mtuci.siscatharsis.services.user.UserService;
 
 import java.io.IOException;
 

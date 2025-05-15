@@ -7,17 +7,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.mtuci.siscatharsis.model.Crypto;
 import ru.mtuci.siscatharsis.services.CryptoService;
-import ru.mtuci.siscatharsis.utils.ApiConstructor;
+import ru.mtuci.siscatharsis.utils.ResponseUtils;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
+@SuppressWarnings("unused")
 @RestController
 @RequiredArgsConstructor
 public class CryptoController {
 
         private final CryptoService cryptoService;
-        private final ApiConstructor apiConstructor;
+        private final ResponseUtils responseUtils;
 
         @GetMapping("/public-key/get")
         public ResponseEntity<?> fetchPublicKey() {
@@ -25,7 +26,7 @@ public class CryptoController {
 
                 String publicKeyBase64 = Base64.getEncoder().encodeToString(crypto.getPublicKey().getEncoded());
 
-                return apiConstructor.success(publicKeyBase64);
+                return responseUtils.success(publicKeyBase64);
         }
 
         @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -33,6 +34,6 @@ public class CryptoController {
         public ResponseEntity<?> generateKeyPair() throws NoSuchAlgorithmException {
                 Crypto crypto = cryptoService.generateNewKeypair();
 
-                return apiConstructor.success(crypto.getPublicKey());
+                return responseUtils.success(crypto.getPublicKey());
         }
 }

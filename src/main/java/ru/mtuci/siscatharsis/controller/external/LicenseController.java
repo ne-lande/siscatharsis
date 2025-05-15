@@ -10,34 +10,27 @@ import ru.mtuci.siscatharsis.dto.license.LicenseInfoRequest;
 import ru.mtuci.siscatharsis.dto.license.LicenseRenewalRequest;
 import ru.mtuci.siscatharsis.dto.license.LicenseResponse;
 import ru.mtuci.siscatharsis.model.Device;
-import ru.mtuci.siscatharsis.model.License;
-import ru.mtuci.siscatharsis.model.User;
+import ru.mtuci.siscatharsis.model.license.License;
+import ru.mtuci.siscatharsis.model.user.User;
 import ru.mtuci.siscatharsis.services.DeviceService;
-import ru.mtuci.siscatharsis.services.LicenseService;
-import ru.mtuci.siscatharsis.utils.ApiConstructor;
+import ru.mtuci.siscatharsis.services.license.LicenseService;
+import ru.mtuci.siscatharsis.utils.ResponseUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+@SuppressWarnings("unused")
 @RestController
 @RequestMapping("/license")
 @RequiredArgsConstructor
 public class LicenseController {
     private final DeviceService deviceService;
     private final LicenseService licenseService;
-    private final ApiConstructor apiConstructor;
+    private final ResponseUtils responseUtils;
 
-    @GetMapping("/current")
-    public ResponseEntity<?> getCurrentLicense(Authentication authentication) {
-        User user = (User) authentication.getPrincipal();
-
-        // TODO: yet to be implemented
-        // платон, это на тебе
-
-        return apiConstructor.success("hoi");
-    }
+    // метода не будет)
 
     @PostMapping("/info")
     public ResponseEntity<?> getLicenseInfo(Authentication authentication, @Valid @RequestBody LicenseInfoRequest licenseInfoRequest) throws Exception {
@@ -52,7 +45,7 @@ public class LicenseController {
             tickets.add(generateTicket(activeLicense, device));
         }
 
-        return apiConstructor.successSigned(tickets);
+        return responseUtils.successSigned(tickets);
     }
 
     @PostMapping("/activate")
@@ -70,7 +63,7 @@ public class LicenseController {
                 device, user
         );
 
-        return apiConstructor.successSigned(generateTicket(license, device));
+        return responseUtils.successSigned(generateTicket(license, device));
     }
 
     @PostMapping("/renew")
@@ -85,7 +78,7 @@ public class LicenseController {
 
         License license = licenseService.renewExistentLicense(licenseCode, user, device);
 
-        return apiConstructor.successSigned(generateTicket(license, device));
+        return responseUtils.successSigned(generateTicket(license, device));
     }
 
     private LicenseResponse generateTicket(License license, Device device) {

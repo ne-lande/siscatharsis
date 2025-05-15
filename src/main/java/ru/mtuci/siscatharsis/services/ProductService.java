@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import ru.mtuci.siscatharsis.model.Product;
 import ru.mtuci.siscatharsis.repositories.ProductRepository;
-import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
+import ru.mtuci.siscatharsis.utils.exceptions.EntityNotFoundException;
 
 @Service
 @RequiredArgsConstructor
@@ -27,10 +27,12 @@ public class ProductService {
         return productRepository.findAll(pageable);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public Product create(Product product) {
         return productRepository.save(product);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public Product update(Long id, Product newProduct) {
         Product product = requireById(id);
 

@@ -15,10 +15,6 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-/* Этот класс состоит из двух частей
-        динамичной: проверкой подписи, подписью jwt и преметодов для создания jwt
-        статичной: достать
- */
 @Component
 public class JwtUtil {
         @Value("${jwt.secret}")
