@@ -7,5 +7,5 @@ RUN --mount=type=cache,target=/root/.m2 mvn clean package spring-boot:repackage 
 FROM sapmachine:21-jre-ubuntu AS run
 WORKDIR app
 COPY --from=build-stage /build/target/siscatharsis-*.jar app.jar
-EXPOSE 12321
+EXPOSE 8443
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -1,95 +1,95 @@
 package ru.mtuci.siscatharsis.controller.external;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import ru.mtuci.siscatharsis.dto.external.license.request.LicenseActivationRequest;
-import ru.mtuci.siscatharsis.dto.external.license.request.LicenseInfoRequest;
-import ru.mtuci.siscatharsis.dto.external.license.request.LicenseUpdateRequest;
-import ru.mtuci.siscatharsis.dto.external.license.response.Ticket;
+import ru.mtuci.siscatharsis.dto.license.LicenseActivationRequest;
+import ru.mtuci.siscatharsis.dto.license.LicenseInfoRequest;
+import ru.mtuci.siscatharsis.dto.license.LicenseRenewalRequest;
+import ru.mtuci.siscatharsis.dto.license.LicenseResponse;
 import ru.mtuci.siscatharsis.model.Device;
-import ru.mtuci.siscatharsis.model.License;
-import ru.mtuci.siscatharsis.model.User;
+import ru.mtuci.siscatharsis.model.license.License;
+import ru.mtuci.siscatharsis.model.user.User;
 import ru.mtuci.siscatharsis.services.DeviceService;
-import ru.mtuci.siscatharsis.services.LicenseService;
-import ru.mtuci.siscatharsis.services.UserService;
-import ru.mtuci.siscatharsis.utils.ApiMessage;
+import ru.mtuci.siscatharsis.services.license.LicenseService;
+import ru.mtuci.siscatharsis.utils.ResponseUtils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+@SuppressWarnings("unused")
 @RestController
 @RequestMapping("/license")
+@RequiredArgsConstructor
 public class LicenseController {
-
-    private final UserService userService;
     private final DeviceService deviceService;
     private final LicenseService licenseService;
+    private final ResponseUtils responseUtils;
 
-    @Autowired
-    public LicenseController(UserService userService, DeviceService deviceService, LicenseService licenseService) {
-        this.userService = userService;
-        this.deviceService = deviceService;
-        this.licenseService = licenseService;
-    }
-
-    @GetMapping("/current")
-    public ResponseEntity<?> getCurrentLicense(Authentication authentication) {
-        User user = (User) authentication.getPrincipal();
-
-        // TODO: yet to be implemented
-
-        return ApiMessage.Secret("hoi");
-    }
+    // метода не будет)
 
     @PostMapping("/info")
     public ResponseEntity<?> getLicenseInfo(Authentication authentication, @Valid @RequestBody LicenseInfoRequest licenseInfoRequest) throws Exception {
         User user = (User) authentication.getPrincipal();
 
-        Device device = deviceService.requireUserDevice(licenseInfoRequest.getMacAddress(), user);
+        Device device = deviceService.requireUserDevice(licenseInfoRequest.macAddress(), user);
 
         List<License> activeLicenses = licenseService.getActiveLicensesForDevice(device);
-        List<Ticket> tickets = new ArrayList<>();
+        List<LicenseResponse> tickets = new ArrayList<>();
 
         for (License activeLicense : activeLicenses) {
-            tickets.add(licenseService.generateTicket(activeLicense, device));
+            tickets.add(generateTicket(activeLicense, device));
         }
 
-        return ApiMessage.Success(tickets);
+        return responseUtils.successSigned(tickets);
     }
 
     @PostMapping("/activate")
     public ResponseEntity<?> activateLicense(Authentication authentication, @Valid @RequestBody LicenseActivationRequest licenseActivationRequest) throws Exception {
-        UUID activationCode = licenseActivationRequest.getActivationCode();
+        UUID activationCode = licenseActivationRequest.activationCode();
 
         User user = (User) authentication.getPrincipal();
 
-        String macAddress = licenseActivationRequest.getMacAddress();
+        String macAddress = licenseActivationRequest.macAddress();
 
-        Device device = deviceService.registerOrUpdateDevice(licenseActivationRequest.getMacAddress(), user);
+        Device device = deviceService.registerOrUpdateDevice(macAddress, user);
 
-        Ticket ticket = licenseService.activateLicense(
-                licenseActivationRequest.getActivationCode(),
-                device,user
+        License license = licenseService.activateLicense(
+                licenseActivationRequest.activationCode(),
+                device, user
         );
 
-        return ApiMessage.Success(ticket);
+        return responseUtils.successSigned(generateTicket(license, device));
     }
 
-    @PostMapping("/update")
-    public ResponseEntity<?> updateLicense(Authentication authentication, @Valid @RequestBody LicenseUpdateRequest licenseUpdateRequest) throws Exception {
+    @PostMapping("/renew")
+    public ResponseEntity<?> renewLicense(Authentication authentication, @Valid @RequestBody LicenseRenewalRequest licenseUpdateRequest) throws Exception {
         User user = (User) authentication.getPrincipal();
-        String macAddress = licenseUpdateRequest.getMacAddress();
+
+        String macAddress = licenseUpdateRequest.macAddress();
 
         Device device = deviceService.requireUserDevice(macAddress, user);
 
-        UUID licenseCode = licenseUpdateRequest.getLicenseCode();
+        UUID licenseCode = licenseUpdateRequest.licenseCode();
 
-        Ticket ticket = licenseService.updateExistentLicense(licenseCode, user, device);
+        License license = licenseService.renewExistentLicense(licenseCode, user, device);
 
-        return ApiMessage.Success(ticket);
+        return responseUtils.successSigned(generateTicket(license, device));
+    }
+
+    private LicenseResponse generateTicket(License license, Device device) {
+        return new LicenseResponse(
+                new Date(),
+                license.getDuration(),
+                license.getFirstActivationDate(),
+                license.getEndingDate(),
+                device.getUser().getId(),
+                device.getId(),
+                license.getIsBlocked()
+        );
     }
 }

@@ -4,15 +4,16 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import ru.mtuci.siscatharsis.model.user.User;
 
 import java.util.List;
 
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Table(name = "devices")
 public class Device {
 
@@ -35,17 +36,4 @@ public class Device {
     @OneToMany(mappedBy = "device", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<DeviceLicense> deviceLicenses;
-
-    public Device(String name, String macAddress, User user, List<DeviceLicense> deviceLicenses) {
-        this.name = name;
-        this.macAddress = macAddress;
-        this.user = user;
-        this.deviceLicenses = deviceLicenses;
-    }
-
-    public Device(String name, String macAddress, User user) {
-        this.name = name;
-        this.macAddress = macAddress;
-        this.user = user;
-    }
 }

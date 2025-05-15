@@ -1,7 +1,6 @@
 package ru.mtuci.siscatharsis.utils;
 
 import java.security.*;
-import java.util.Base64;
 
 public class CryptoUtil {
 
@@ -12,13 +11,11 @@ public class CryptoUtil {
         return keyPairGen.generateKeyPair();
     }
 
-    public static String sign(PrivateKey privateKey, String input) throws Exception {
+    public static byte[] sign(PrivateKey privateKey, byte[] byteArray) throws Exception {
         Signature signature = Signature.getInstance("SHA256withRSA");
         signature.initSign(privateKey);
 
-        signature.update(input.getBytes());
-        byte[] signedBytes = signature.sign();
-
-        return Base64.getEncoder().encodeToString(signedBytes);
+        signature.update(byteArray);
+        return signature.sign();
     }
 }

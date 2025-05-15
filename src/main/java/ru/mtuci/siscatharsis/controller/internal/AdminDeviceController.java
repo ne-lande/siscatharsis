@@ -1,84 +1,34 @@
 package ru.mtuci.siscatharsis.controller.internal;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import ru.mtuci.siscatharsis.dto.internal.request.DeviceRequest;
+import ru.mtuci.siscatharsis.dto.device.DeviceCreateUpdateRequest;
 import ru.mtuci.siscatharsis.model.Device;
-import ru.mtuci.siscatharsis.model.User;
+import ru.mtuci.siscatharsis.model.user.User;
 import ru.mtuci.siscatharsis.services.DeviceService;
-import ru.mtuci.siscatharsis.services.UserService;
-import ru.mtuci.siscatharsis.utils.ApiMessage;
+import ru.mtuci.siscatharsis.services.user.UserService;
+import ru.mtuci.siscatharsis.utils.ResponseUtils;
 
+@SuppressWarnings("unused")
 @RestController
 @RequestMapping("/admin/device")
 @PreAuthorize("hasRole('ROLE_ADMIN')")
+@RequiredArgsConstructor
 public class AdminDeviceController {
 
     private final DeviceService deviceService;
     private final UserService userService;
+    private final ResponseUtils responseUtils;
 
-    @Autowired
-    public AdminDeviceController(DeviceService deviceService, UserService userService) {
-        this.deviceService = deviceService;
-        this.userService = userService;
-    }
+        private Device deviceFromDto(DeviceCreateUpdateRequest dto) {
+        User user = userService.requireById(dto.userId());
 
-    @PostMapping("/")
-    public ResponseEntity<?> create(@RequestBody DeviceRequest deviceRequest) {
-        User user = userService.findById(deviceRequest.getUserId());
-
-        String macAddress = deviceRequest.getMacAddress();
-
-        if (deviceService.existsUserDevice(macAddress, user)) {
-            return ApiMessage.BadRequest("Already Exists");
-        }
-
-        String name = deviceRequest.getDeviceName();
-
-        Device device = Device.builder()
-                .name(name)
-                .macAddress(macAddress)
+        return Device.builder()
                 .user(user)
+                .name(dto.deviceName())
+                .macAddress(dto.macAddress())
                 .build();
-
-        deviceService.save(device);
-
-        return ApiMessage.Success(device);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<?> read(@PathVariable Long id) {
-        Device device = deviceService.findById(id);
-
-        return ApiMessage.Success(device);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody DeviceRequest deviceRequest) {
-        Device device = deviceService.findById(id);
-
-        String name = deviceRequest.getDeviceName();
-        String macAddress = deviceRequest.getMacAddress();
-        User user = userService.findById(deviceRequest.getUserId());
-
-        device.setName(name);
-        device.setMacAddress(macAddress);
-        device.setUser(user);
-
-        deviceService.save(device);
-
-        return ApiMessage.Success(device);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(@PathVariable Long id) {
-        Device device = deviceService.findById(id);
-
-        deviceService.delete(device);
-
-        return ApiMessage.Success(id);
     }
 }

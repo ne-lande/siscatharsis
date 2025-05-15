@@ -1,47 +1,44 @@
 package ru.mtuci.siscatharsis.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.mtuci.siscatharsis.model.DeviceLicense;
-import ru.mtuci.siscatharsis.model.License;
+import ru.mtuci.siscatharsis.model.license.License;
 import ru.mtuci.siscatharsis.model.Device;
 import ru.mtuci.siscatharsis.repositories.DeviceLicenseRepository;
-import ru.mtuci.siscatharsis.base.AbstractCRUDService;
-import ru.mtuci.siscatharsis.utils.EntityNotFoundException;
+import ru.mtuci.siscatharsis.utils.exceptions.EntityNotFoundException;
 
 import java.util.List;
 import java.util.Date;
 
 @Service
-public class DeviceLicenseService extends AbstractCRUDService<DeviceLicense, DeviceLicenseRepository> {
+@RequiredArgsConstructor
+public class DeviceLicenseService {
 
-    @Autowired
-    public DeviceLicenseService(DeviceLicenseRepository repository) {
-        super(repository, DeviceLicense.class);
-    }
+    private final DeviceLicenseRepository deviceLicenseRepository;
 
+    @SuppressWarnings("UnusedReturnValue")
     public DeviceLicense createDeviceLicense(License license, Device device) {
         DeviceLicense deviceLicense = new DeviceLicense();
         deviceLicense.setDevice(device);
         deviceLicense.setLicense(license);
         deviceLicense.setActivationDate(new Date());
 
-        this.save(deviceLicense);
+        deviceLicenseRepository.save(deviceLicense);
         return deviceLicense;
     }
 
     public List<DeviceLicense> getByDeviceId(Long deviceId) {
-        return repository.getByDeviceId(deviceId);
+        return deviceLicenseRepository.getByDeviceId(deviceId);
     }
 
     public List<DeviceLicense> getByLicenseId(Long licenseId) {
-        return repository.getByLicenseId(licenseId);
+        return deviceLicenseRepository.getByLicenseId(licenseId);
     }
 
     public DeviceLicense findByDeviceIdAndLicenseId(Long deviceId, Long licenseId) {
-        return repository.findByDeviceIdAndLicenseId(deviceId, licenseId)
-            .orElseThrow(() -> new EntityNotFoundException(
-                "DeviceLicense not found by Device and License"
-        ));
+        return deviceLicenseRepository.findByDeviceIdAndLicenseId(deviceId, licenseId).orElseThrow(
+                () -> new EntityNotFoundException("DeviceLicense not found by Device and License")
+        );
     }
 }

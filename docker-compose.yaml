@@ -7,7 +7,7 @@ services:
       args:
         JAR: "siscatharsis-0.0.1.jar"
     ports:
-      - "12321:12321"
+      - "8443:8443"
     environment:
       POSTGRES_URL: 'database'
       POSTGRES_DB: ${POSTGRES_DB}
@@ -16,6 +16,7 @@ services:
       KEY_STORE_FILE: ${KEY_STORE_FILE}
       KEY_STORE_PASS: ${KEY_STORE_PASS}
       KEY_ALIAS: ${KEY_ALIAS}
+      JWT_KEY: ${JWT_KEY}
     depends_on:
       database:
         restart: true

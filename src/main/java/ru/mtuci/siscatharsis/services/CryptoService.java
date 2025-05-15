@@ -1,24 +1,21 @@
 package ru.mtuci.siscatharsis.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.mtuci.siscatharsis.model.Crypto;
 import ru.mtuci.siscatharsis.repositories.CryptoRepository;
 import ru.mtuci.siscatharsis.utils.CryptoUtil;
+import ru.mtuci.siscatharsis.utils.exceptions.EntityNotFoundException;
 
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 
 @Service
+@RequiredArgsConstructor
 public class CryptoService {
 
         private final CryptoRepository cryptoRepository;
-
-        @Autowired
-        public CryptoService(CryptoRepository cryptoRepository) {
-                this.cryptoRepository = cryptoRepository;
-        }
 
         public Crypto generateNewKeypair() throws NoSuchAlgorithmException {
                 KeyPair newKeyPair = CryptoUtil.generateNewKeypair();
@@ -35,14 +32,15 @@ public class CryptoService {
         }
 
         public Crypto getCurrentKeypair() {
-                Crypto crypto = cryptoRepository.findById(1L).orElseThrow(() -> new RuntimeException("smh happened"));
-
-                return crypto;
+                return cryptoRepository.findById(1L).orElseThrow(
+                        () -> new EntityNotFoundException("No keypair exists, call administrator")
+                );
         }
 
-        public String signWithCurrent(String input) throws Exception {
+        public byte[] signWithCurrent(byte[] byteArray) throws Exception {
                 Crypto crypto = this.getCurrentKeypair();
                 PrivateKey privateKey = crypto.getPrivateKey();
-                return CryptoUtil.sign(privateKey, input);
+
+                return CryptoUtil.sign(privateKey, byteArray);
         }
 }

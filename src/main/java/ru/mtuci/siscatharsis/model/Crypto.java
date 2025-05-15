@@ -8,14 +8,13 @@ import lombok.*;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.time.Instant;
 
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 @Table(name = "cryptos")
 public class Crypto {
         @Id
