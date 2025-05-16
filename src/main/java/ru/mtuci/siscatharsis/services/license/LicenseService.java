@@ -1,6 +1,9 @@
 package ru.mtuci.siscatharsis.services.license;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import ru.mtuci.siscatharsis.model.*;
@@ -33,8 +36,16 @@ public class LicenseService {
         );
     }
 
+    public Page<License> getAllLicenses(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return licenseRepository.findAll(pageable);
+    }
+
+
     @SuppressWarnings("UnusedReturnValue")
     public License create(License license, User issuer) {
+        license.setCode(UUID.randomUUID());
+
         licenseRepository.save(license);
 
         licenseHistoryService.create(license, issuer, LicenseHistory.ChangeType.CREATE);

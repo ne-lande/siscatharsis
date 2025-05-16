@@ -38,7 +38,7 @@ public class SessionService {
                                 .build()
                 );
 
-                String refreshToken = jwtUtil.createRefreshToken(userDetails, tokenId, deviceId);
+                String refreshToken = jwtUtil.createRefreshToken(userDetails, tokenId);
                 String accessToken = jwtUtil.createAccessToken(userDetails);
 
                 return new RefreshTokenResponse(refreshToken, accessToken);

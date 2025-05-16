@@ -28,17 +28,17 @@ public class License {
     @Column(name = "code", unique = true, nullable = false, updatable = false)
     private UUID code;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "product_id")
     @JsonBackReference
     private Product product;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "type_id")
     @JsonBackReference
     private LicenseType type;
@@ -55,7 +55,7 @@ public class License {
     @Column(name = "devices_count")
     private int devicesCount;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "owner_id")
     @JsonBackReference
     private User owner;

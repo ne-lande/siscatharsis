@@ -1,5 +1,6 @@
-package ru.mtuci.siscatharsis.controller.internal;
+package ru.mtuci.siscatharsis.controller.admin;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+@SecurityRequirement(name = "bearerAuth")
 @SuppressWarnings("unused")
 @RestController
 @RequestMapping("/admin/signature")
@@ -51,7 +53,7 @@ public class AdminSignatureController {
                 return responseUtils.success(signature);
         }
 
-        @PostMapping("/{guid}")
+        @DeleteMapping("/{guid}")
         public ResponseEntity<?> markSignatureAsDelete(Authentication authentication, @PathVariable UUID guid) {
                 User user = (User) authentication.getPrincipal();
                 Long userId = user.getId();
@@ -72,7 +74,7 @@ public class AdminSignatureController {
                 return responseUtils.success(response);
         }
 
-        @GetMapping("/audit/{id}")
+        @GetMapping("/audit/{guid}")
         public ResponseEntity<?> getAuditFor(@PathVariable UUID guid) {
                 Signature signature = signatureService.requireById(guid);
 
@@ -81,7 +83,7 @@ public class AdminSignatureController {
                 return responseUtils.success(response);
         }
 
-        @GetMapping("/history/{id}")
+        @GetMapping("/history/{guid}")
         public ResponseEntity<?> getHistoryFor(@PathVariable UUID guid) {
                 Signature signature = signatureService.requireById(guid);
 

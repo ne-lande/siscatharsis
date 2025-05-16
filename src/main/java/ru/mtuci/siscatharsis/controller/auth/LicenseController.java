@@ -1,5 +1,6 @@
-package ru.mtuci.siscatharsis.controller.external;
+package ru.mtuci.siscatharsis.controller.auth;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+@SecurityRequirement(name = "bearerAuth")
 @SuppressWarnings("unused")
 @RestController
 @RequestMapping("/license")

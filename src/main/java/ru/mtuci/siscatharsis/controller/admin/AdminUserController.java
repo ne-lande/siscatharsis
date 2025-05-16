@@ -1,5 +1,6 @@
-package ru.mtuci.siscatharsis.controller.internal;
+package ru.mtuci.siscatharsis.controller.admin;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -13,6 +14,7 @@ import ru.mtuci.siscatharsis.model.user.User;
 import ru.mtuci.siscatharsis.services.user.UserService;
 import ru.mtuci.siscatharsis.utils.ResponseUtils;
 
+@SecurityRequirement(name = "bearerAuth")
 @SuppressWarnings("unused")
 @RestController
 @RequestMapping("/admin/user")
@@ -24,7 +26,7 @@ public class AdminUserController {
     private final PasswordEncoder passwordEncoder;
     private final ResponseUtils responseUtils;
 
-    @GetMapping("/")
+    @GetMapping("/all")
     public ResponseEntity<?> readAllUsers(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         Page<User> users = userService.getAllUsers(page, size);
 

@@ -1,5 +1,6 @@
-package ru.mtuci.siscatharsis.controller.external;
+package ru.mtuci.siscatharsis.controller;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,6 +12,7 @@ import ru.mtuci.siscatharsis.utils.ResponseUtils;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+
 
 @SuppressWarnings("unused")
 @RestController
@@ -29,6 +31,7 @@ public class CryptoController {
                 return responseUtils.success(publicKeyBase64);
         }
 
+        @SecurityRequirement(name = "bearerAuth")
         @PreAuthorize("hasRole('ROLE_ADMIN')")
         @GetMapping("/key-pair/generate")
         public ResponseEntity<?> generateKeyPair() throws NoSuchAlgorithmException {

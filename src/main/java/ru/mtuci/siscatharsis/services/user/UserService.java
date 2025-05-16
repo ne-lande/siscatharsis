@@ -76,7 +76,9 @@ public class UserService implements UserDetailsService {
         String login = newUser.getLogin();
         String email = newUser.getEmail();
 
-        if (existsByLoginAndEmail(login, email)) {
+        boolean isLoginOrEmailChanged = !user.getLogin().equals(login) || !user.getEmail().equals(email);
+
+        if (isLoginOrEmailChanged && existsByLoginAndEmail(login, email)) {
             throw new EntityAlreadyExistException("Login already assigned");
         }
 

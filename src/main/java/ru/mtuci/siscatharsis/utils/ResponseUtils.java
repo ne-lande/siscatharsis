@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import ru.mtuci.siscatharsis.services.CryptoService;
 
 import java.util.Arrays;
+import java.util.Base64;
 
 @Component
 @RequiredArgsConstructor
@@ -37,7 +38,7 @@ public class ResponseUtils {
         ObjectNode json = objectMapper.createObjectNode();
         json.set("data", objectMapper.valueToTree(data));
 
-        String signature = Arrays.toString(cryptoService.signWithCurrent(json.get("data").toString().getBytes()));
+        String signature = Base64.getEncoder().encodeToString(cryptoService.signWithCurrent(data.toString().getBytes()));
         json.put("signature", signature);
 
         return ResponseEntity.status(HttpStatus.OK).body(json.toString());

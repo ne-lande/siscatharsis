@@ -1,5 +1,6 @@
-package ru.mtuci.siscatharsis.controller.external;
+package ru.mtuci.siscatharsis.controller.auth;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
@@ -18,6 +19,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+@SecurityRequirement(name = "bearerAuth")
 @SuppressWarnings("unused")
 @RestController
 @RequestMapping("/signature")
@@ -49,7 +51,7 @@ public class SignatureController {
                 return responseUtils.success(response);
         }
 
-        @GetMapping(value = "/download", produces = MediaType.MULTIPART_MIXED_VALUE)
+        @PostMapping(value = "/download", produces = MediaType.MULTIPART_MIXED_VALUE)
         public ResponseEntity<?> download(@Valid @RequestBody SignatureFetchUUIDrequest signatureFetchUUIDrequest) throws IOException {
                 List<UUID> guidList = signatureFetchUUIDrequest.uuidList();
 

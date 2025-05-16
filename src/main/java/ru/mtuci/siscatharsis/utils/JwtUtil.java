@@ -38,12 +38,11 @@ public class JwtUtil {
                 return createToken(accessClaims, userDetails.getUsername(), accessExpiration);
         }
 
-        public String createRefreshToken(UserDetails userDetails, UUID tokenId, Long deviceId) {
+        public String createRefreshToken(UserDetails userDetails, UUID tokenId) {
                 Map<String, Object> refreshClaims = new HashMap<>();
 
                 refreshClaims.put("token_type", "refresh");
                 refreshClaims.put("token_id", tokenId.toString());
-                refreshClaims.put("device_id", deviceId);
 
                 return createToken(refreshClaims, userDetails.getUsername(), refreshExpiration);
         }

@@ -1,4 +1,4 @@
-package ru.mtuci.siscatharsis.controller.external;
+package ru.mtuci.siscatharsis.controller.noauth;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

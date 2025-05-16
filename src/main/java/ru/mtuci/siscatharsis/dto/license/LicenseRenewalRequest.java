@@ -1,6 +1,7 @@
 package ru.mtuci.siscatharsis.dto.license;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
@@ -8,7 +9,7 @@ public record LicenseRenewalRequest(
     @NotBlank(message = "Login is empty")
     String login,
 
-    @NotBlank(message = "License code is empty")
+    @NotNull(message = "License code is empty")
     UUID licenseCode,
 
     @NotBlank(message = "MAC address is empty")

@@ -13,6 +13,7 @@ import ru.mtuci.siscatharsis.services.user.UserService;
 
 import java.io.IOException;
 
+@SuppressWarnings("NullableProblems")
 @Component
 @RequiredArgsConstructor
 public class JwtRequestFilter extends OncePerRequestFilter {

@@ -1,5 +1,7 @@
-package ru.mtuci.siscatharsis.controller.internal;
+package ru.mtuci.siscatharsis.controller.admin;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -10,6 +12,7 @@ import ru.mtuci.siscatharsis.model.license.LicenseType;
 import ru.mtuci.siscatharsis.services.license.LicenseTypeService;
 import ru.mtuci.siscatharsis.utils.ResponseUtils;
 
+@SecurityRequirement(name = "bearerAuth")
 @SuppressWarnings("unused")
 @RestController
 @RequestMapping("/admin/license-type")
@@ -23,7 +26,7 @@ public class AdminLicenseTypeController {
     // don't need read endpoints because they are public available in InfoController
 
     @PostMapping("/")
-    public ResponseEntity<?> create(@RequestBody LicenseTypeCreateUpdateRequest licenseTypeRequest) {
+    public ResponseEntity<?> create(@Valid @RequestBody LicenseTypeCreateUpdateRequest licenseTypeRequest) {
         LicenseType licenseType = licenseTypeFromDto(licenseTypeRequest);
 
         licenseTypeService.create(licenseType);
@@ -32,7 +35,7 @@ public class AdminLicenseTypeController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody LicenseTypeCreateUpdateRequest licenseTypeRequest) {
+    public ResponseEntity<?> update(@PathVariable Long id, @Valid @RequestBody LicenseTypeCreateUpdateRequest licenseTypeRequest) {
         LicenseType licenseType = licenseTypeFromDto(licenseTypeRequest);
 
         licenseTypeService.update(id, licenseType);

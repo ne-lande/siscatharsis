@@ -1,5 +1,6 @@
-package ru.mtuci.siscatharsis.controller.external;
+package ru.mtuci.siscatharsis.controller.auth;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import ru.mtuci.siscatharsis.services.user.UserService;
 
 import java.util.List;
 
+@SecurityRequirement(name = "bearerAuth")
 @SuppressWarnings("unused")
 @RestController
 @RequestMapping("/profile")
@@ -36,7 +38,7 @@ public class ProfileController {
     }
 
     @PostMapping("/change-password")
-    public void changePassword(Authentication authentication, @RequestBody PasswordChangeRequest changePasswordRequest) {
+    public void changePassword(Authentication authentication, @Valid @RequestBody PasswordChangeRequest changePasswordRequest) {
         User user = (User) authentication.getPrincipal();
         Long userId = user.getId();
 
@@ -59,23 +61,24 @@ public class ProfileController {
         User user = (User) authentication.getPrincipal();
 
         Device device = deviceService.findById(id);
-        if (device.getUser().equals(user)) {
-            return responseUtils.success(device);
+        if (device == null || !device.getUser().getId().equals(user.getId())) {
+            return responseUtils.badRequest("Not yours");
         }
 
-        return responseUtils.badRequest("Not yours");
+        return responseUtils.success(device);
     }
 
     @PutMapping("/devices/{id}")
     public ResponseEntity<?> changeMyDevice(Authentication authentication, @PathVariable Long id, @Valid @RequestBody DeviceUserAddChangeRequest deviceRequest) {
         User user = (User) authentication.getPrincipal();
 
-        Device device = deviceService.findById(id);
-        if (!device.getUser().equals(user)) {
+        Device device = deviceService.requireById(id);
+        if (device == null || !device.getUser().getId().equals(user.getId())) {
             return responseUtils.badRequest("Not yours");
         }
 
         Device updateDevice = Device.builder()
+                .user(user)
                 .name(deviceRequest.name())
                 .macAddress(deviceRequest.macAddress())
                 .build();

@@ -2,6 +2,7 @@ package ru.mtuci.siscatharsis.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import ru.mtuci.siscatharsis.model.user.User;
 
 public record UserCreateUpdateRequest(
@@ -14,6 +15,6 @@ public record UserCreateUpdateRequest(
     @NotBlank(message = "Email is empty")
     String email,
 
-    @NotEmpty(message = "Role is empty")
+    @NotNull(message = "Role cannot be null")
     User.Role role
 ) {}

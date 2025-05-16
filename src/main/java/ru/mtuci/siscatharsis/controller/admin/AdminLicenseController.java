@@ -1,6 +1,9 @@
-package ru.mtuci.siscatharsis.controller.internal;
+package ru.mtuci.siscatharsis.controller.admin;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -21,6 +24,7 @@ import ru.mtuci.siscatharsis.utils.ResponseUtils;
 
 import java.util.ArrayList;
 
+@SecurityRequirement(name = "bearerAuth")
 @SuppressWarnings("unused")
 @RestController
 @RequestMapping("/admin/license")
@@ -36,7 +40,7 @@ public class AdminLicenseController {
     private final ResponseUtils responseUtils;
 
     @PostMapping("/")
-    public ResponseEntity<?> create(Authentication authentication, @RequestBody LicenseCreateUpdateRequest licenseRequest) {
+    public ResponseEntity<?> create(Authentication authentication, @Valid @RequestBody LicenseCreateUpdateRequest licenseRequest) {
         User issuer = (User) authentication.getPrincipal();
 
         License license = licenseFromDto(licenseRequest);
@@ -44,6 +48,13 @@ public class AdminLicenseController {
         licenseService.create(license, issuer);
 
         return responseUtils.success(license);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<?> readAllLicenses(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        Page<License> licenses = licenseService.getAllLicenses(page, size);
+
+        return responseUtils.success(licenses);
     }
 
     @GetMapping("/{id}")
@@ -54,7 +65,7 @@ public class AdminLicenseController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(Authentication authentication, @PathVariable Long id, @RequestBody LicenseCreateUpdateRequest licenseRequest) {
+    public ResponseEntity<?> update(Authentication authentication, @PathVariable Long id, @Valid @RequestBody LicenseCreateUpdateRequest licenseRequest) {
         User issuer = (User) authentication.getPrincipal();
 
         License license = licenseFromDto(licenseRequest);
@@ -89,6 +100,7 @@ public class AdminLicenseController {
                 .owner(owner)
                 .product(product)
                 .type(licenseType)
+                .isBlocked(product.isBlocked())
                 .endingDate(dto.endingDate())
                 .devicesCount(licenseType.getDeviceCount())
                 .duration(licenseType.getDuration())

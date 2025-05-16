@@ -9,7 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @SuppressWarnings("unused")
 @Configuration
-public class ApplicationConfiguration {
+public class ApplicationConfig {
 
         private static final int BCRYPT_STRENGTH = 12;
 

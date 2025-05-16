@@ -23,7 +23,7 @@ import ru.mtuci.siscatharsis.utils.JwtRequestFilter;
 public class WebSecurityConfig {
 
     private static final String[] PUBLIC_ENDPOINTS = {
-        "/auth/**", "/info/**", "/actuator/**", "/v3/**", "/swagger-ui/**"
+        "/auth/**", "/info/**", "/public-key/get", "/actuator/**", "/v3/**", "/swagger-ui/**"
     };
 
     private final JwtRequestFilter jwtRequestFilter;

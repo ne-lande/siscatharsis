@@ -1,5 +1,6 @@
-package ru.mtuci.siscatharsis.controller.internal;
+package ru.mtuci.siscatharsis.controller.admin;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import ru.mtuci.siscatharsis.model.Product;
 import ru.mtuci.siscatharsis.services.ProductService;
 import ru.mtuci.siscatharsis.utils.ResponseUtils;
 
+@SecurityRequirement(name = "bearerAuth")
 @SuppressWarnings("unused")
 @RestController
 @RequestMapping("/admin/product")

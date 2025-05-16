@@ -1,4 +1,4 @@
-package ru.mtuci.siscatharsis.controller.external;
+package ru.mtuci.siscatharsis.controller.noauth;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -87,7 +87,7 @@ public class AuthController {
     }
 
     @PostMapping("/refreshToken")
-    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest userRequest) {
+    public ResponseEntity<?> refreshToken(@Valid @RequestBody RefreshTokenRequest userRequest) {
         String token = userRequest.token();
 
         String login = jwtUtil.extractLogin(token);
