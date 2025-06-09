@@ -1,3 +1,7 @@
+## Disclaimer
+
+Project was used as uni assignment. Archived currently and forever.
+
 ## Preparing development environment
 
 ### Nix-way
